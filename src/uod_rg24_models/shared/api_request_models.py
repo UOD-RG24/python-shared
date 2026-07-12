@@ -135,7 +135,6 @@ class ProcessDatasetRequestDataModel(BaseModel):
         populate_by_name=True,
         extra="forbid",
     )
-
     dataset_id: str = Field(
         alias="datasetId",
         min_length=1,
@@ -145,3 +144,21 @@ class ProcessDatasetRequestModel(
     ApiRequestModel[ProcessDatasetRequestDataModel]
 ):
     operation: Literal["process-dataset"]
+
+
+class ProcessDatasetResponseDataModel(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="forbid",
+    )
+
+    dataset_id: str = Field(
+        alias="datasetId",
+        min_length=1,
+        description="Identifier of the processed dataset.",
+    )
+
+    status: Literal["completed"] = Field(
+        default="completed",
+        description="Dataset processing status.",
+    )
