@@ -4,7 +4,9 @@ from .shared.api_request_models import (
     ApiRequestModel,
     ApiRequestMetadataModel,
     ApiResponseModel,
-    ApiSuccessResponseModel
+    ApiSuccessResponseModel,
+    ProcessDatasetRequestModel,
+    ProcessDatasetResponseDataModel
 )
 __all__ = [
     "ApiErrorModel",
@@ -12,5 +14,7 @@ __all__ = [
     "ApiRequestModel",
     "ApiRequestMetadataModel",
     "ApiResponseModel",
-    "ApiSuccessResponseModel"
+    "ApiSuccessResponseModel",
+    "ProcessDatasetRequestModel",
+    "ProcessDatasetResponseDataModel"
 ]
