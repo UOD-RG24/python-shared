@@ -4,6 +4,7 @@ from typing import Any, Generic, Optional, TypeVar
 from uuid import UUID, uuid4
 from pydantic import BaseModel, ConfigDict, Field
 from uod_rg24_tools import datetime_tools
+from typing import Literal
 
 T = TypeVar("T")
 
@@ -128,3 +129,19 @@ class ApiErrorResponseModel(ApiResponseModel[None]):
     success: bool = False
     data: None = None
     error: ApiErrorModel
+
+class ProcessDatasetRequestDataModel(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="forbid",
+    )
+
+    dataset_id: str = Field(
+        alias="datasetId",
+        min_length=1,
+    )
+
+class ProcessDatasetRequestModel(
+    ApiRequestModel[ProcessDatasetRequestDataModel]
+):
+    operation: Literal["process-dataset"]
