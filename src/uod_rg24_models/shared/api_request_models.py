@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Generic, Optional, TypeVar
 from uuid import UUID, uuid4
 from pydantic import BaseModel, ConfigDict, Field
-from tools import datetime_tools
+from uod_rg24_tools import datetime_tools
 
 T = TypeVar("T")
 
