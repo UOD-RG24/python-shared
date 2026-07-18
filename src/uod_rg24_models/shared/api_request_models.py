@@ -8,6 +8,7 @@ from typing import Literal
 
 T = TypeVar("T")
 
+
 class ApiRequestMetadataModel(BaseModel):
     model_config = ConfigDict(extra="allow")
     source: Optional[str] = Field(
@@ -24,6 +25,7 @@ class ApiRequestMetadataModel(BaseModel):
         default=None,
         description="Additional request metadata.",
     )
+
 
 class ApiRequestModel(BaseModel, Generic[T]):
     model_config = ConfigDict(
@@ -53,6 +55,7 @@ class ApiRequestModel(BaseModel, Generic[T]):
         description="Optional information about the request source.",
     )
 
+
 class ApiErrorModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
@@ -71,6 +74,7 @@ class ApiErrorModel(BaseModel):
         default=None,
         description="Optional structured error details.",
     )
+
 
 class ApiResponseModel(BaseModel, Generic[T]):
     model_config = ConfigDict(
@@ -121,14 +125,17 @@ class ApiResponseModel(BaseModel, Generic[T]):
         description="Error details when success is false.",
     )
 
+
 class ApiSuccessResponseModel(ApiResponseModel[T], Generic[T]):
     success: bool = True
     error: None = None
+
 
 class ApiErrorResponseModel(ApiResponseModel[None]):
     success: bool = False
     data: None = None
     error: ApiErrorModel
+
 
 class ProcessDatasetRequestDataModel(BaseModel):
     model_config = ConfigDict(
@@ -140,9 +147,8 @@ class ProcessDatasetRequestDataModel(BaseModel):
         min_length=1,
     )
 
-class ProcessDatasetRequestModel(
-    ApiRequestModel[ProcessDatasetRequestDataModel]
-):
+
+class ProcessDatasetRequestModel(ApiRequestModel[ProcessDatasetRequestDataModel]):
     operation: Literal["process-dataset"]
 
 

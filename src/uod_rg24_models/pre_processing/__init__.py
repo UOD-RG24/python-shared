@@ -1,8 +1,9 @@
 from .keep_only_samples_models import (
     MatchAllSamplesExistOnAllOmicsLayersModel,
-    MatchAllSamplesHaveOmicsDataModel
+    MatchAllSamplesHaveOmicsDataModel,
 )
+
 __all__ = [
     "MatchAllSamplesExistOnAllOmicsLayersModel",
-    "MatchAllSamplesHaveOmicsDataModel"
+    "MatchAllSamplesHaveOmicsDataModel",
 ]

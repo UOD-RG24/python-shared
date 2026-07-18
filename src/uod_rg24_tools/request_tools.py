@@ -11,6 +11,7 @@ from uod_rg24_models.shared.api_request_models import (
 )
 from uod_rg24_tools.datetime_tools import utc_now
 
+
 def create_error_response(
     *,
     start_time: float,
@@ -30,7 +31,7 @@ def create_error_response(
         message=message,
         requested_at=requested_at,
         completed_at=utc_now(),
-        time_consumed_ms= elapsed_ms(start_time),
+        time_consumed_ms=elapsed_ms(start_time),
         error=ApiErrorModel(
             code=error_code,
             message=error_message,
@@ -38,6 +39,7 @@ def create_error_response(
         ),
     )
     return to_http_response(response)
+
 
 def to_http_response(
     response: ApiResponseModel[Any],
@@ -55,11 +57,13 @@ def to_http_response(
         },
     )
 
+
 def elapsed_ms(start_time: float) -> float:
     return round(
         (perf_counter() - start_time) * 1000,
         3,
     )
+
 
 def parse_request_id(value: Any) -> uuid.UUID:
     if value is None:
@@ -68,6 +72,7 @@ def parse_request_id(value: Any) -> uuid.UUID:
         return uuid.UUID(str(value))
     except (TypeError, ValueError, AttributeError):
         return uuid.uuid4()
+
 
 def get_trace_id(req: func.HttpRequest) -> str:
     trace_id = req.headers.get("X-Trace-ID")
