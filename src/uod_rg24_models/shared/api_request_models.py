@@ -32,10 +32,10 @@ class ApiRequestModel(BaseModel, Generic[T]):
         populate_by_name=True,
         extra="forbid",
     )
-    request_id: UUID = Field(
+    experiment_id: UUID = Field(
         default_factory=uuid4,
-        alias="requestId",
-        description="Unique identifier used to correlate the request.",
+        alias="experimentId",
+        description="Unique identifier used to correlate the experiment.",
     )
     requested_at: datetime = Field(
         default_factory=datetime_tools.utc_now,
@@ -81,9 +81,9 @@ class ApiResponseModel(BaseModel, Generic[T]):
         populate_by_name=True,
         extra="forbid",
     )
-    request_id: UUID = Field(
-        alias="requestId",
-        description="Identifier of the associated request.",
+    experiment_id: UUID = Field(
+        alias="experimentId",
+        description="Identifier of the associated experiment.",
     )
     trace_id: str = Field(
         alias="traceId",

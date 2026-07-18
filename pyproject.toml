@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uod-rg24-python-shared"
-version = "1.0.0"
+version = "1.0.1"
 description = "A reusable Python class library in UOD RG24"
 readme = "README.md"
 requires-python = ">=3.10"

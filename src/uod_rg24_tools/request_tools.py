@@ -16,7 +16,7 @@ def create_error_response(
     *,
     start_time: float,
     requested_at,
-    request_id: uuid.UUID,
+    experiment_id: uuid.UUID,
     trace_id: str,
     status_code: int,
     message: str,
@@ -25,7 +25,7 @@ def create_error_response(
     error_details: Any = None,
 ) -> func.HttpResponse:
     response = ApiErrorResponseModel(
-        request_id=request_id,
+        experiment_id=experiment_id,
         trace_id=trace_id,
         status_code=status_code,
         message=message,
@@ -52,7 +52,7 @@ def to_http_response(
         status_code=response.status_code,
         mimetype="application/json",
         headers={
-            "X-Request-ID": str(response.request_id),
+            "X-Experiment-ID": str(response.experiment_id),
             "X-Trace-ID": response.trace_id,
         },
     )
@@ -65,7 +65,7 @@ def elapsed_ms(start_time: float) -> float:
     )
 
 
-def parse_request_id(value: Any) -> uuid.UUID:
+def parse_experiment_id(value: Any) -> uuid.UUID:
     if value is None:
         return uuid.uuid4()
     try:

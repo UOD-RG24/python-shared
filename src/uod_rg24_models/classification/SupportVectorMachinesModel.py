@@ -1,14 +1,15 @@
-from typing import Any
-import asyncio
+from typing import Any, Literal
 import io
 import os
 import joblib
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from uod_rg24_models.shared.api_request_models import ApiRequestModel
 from uod_rg24_models.azure_cloud.StorageAccountModel import StorageAccountModel
+from sklearn.pipeline import Pipeline
 
 
 class TrainModel(BaseModel):
+    kernel: Literal["linear", "rbf", "poly"] = "linear"
     data: list[list[float]]
     feature: list[int]
     test_size: float = Field(alias="testSize", default=0.25, gt=0, lt=1)
@@ -55,12 +56,16 @@ class SupportVectorMachinesResponseDataModel(BaseModel):
     actual_values: list[Any] = Field(alias="actualValues")
     predicted_values: list[Any] = Field(alias="predictedValues")
     classification_report: dict[str, Any] = Field(alias="classificationReport")
+    model_url: str = Field(alias="modelUrl")
 
 
 async def save_svm_model(
-    request_id: str,
-    model,
+    experiment_id: str,
+    model: Pipeline,
+    kernel: Literal["linear", "rbf", "poly"] = "linear",
 ) -> str:
+    if not experiment_id:
+        raise ValueError("experiment_id cannot be empty.")
     storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
     experiments_container_name = os.getenv("EXPERIMENTS_CONTAINER_NAME")
     if not storage_account_name:
@@ -74,7 +79,7 @@ async def save_svm_model(
         compress=3,
     )
     model_buffer.seek(0)
-    blob_name = f"{request_id}/model_svm.joblib"
+    blob_name = f"{experiment_id}/model_svm_{kernel}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name
     ) as storage_account_model:
@@ -87,17 +92,18 @@ async def save_svm_model(
 
 
 async def read_svm_model(
-    request_id: str,
+    experiment_id: str,
+    kernel: Literal["linear", "rbf", "poly"] = "linear",
 ) -> Any:
-    if not request_id:
-        raise ValueError("request_id cannot be empty.")
+    if not experiment_id:
+        raise ValueError("experiment_id cannot be empty.")
     storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
     experiments_container_name = os.getenv("EXPERIMENTS_CONTAINER_NAME")
     if not storage_account_name:
         raise ValueError("STORAGE_ACCOUNT_NAME is not configured.")
     if not experiments_container_name:
         raise ValueError("EXPERIMENTS_CONTAINER_NAME is not configured.")
-    blob_name = f"{request_id}/model_svm.joblib"
+    blob_name = f"{experiment_id}/model_svm_{kernel}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name,
     ) as storage_account_model:
