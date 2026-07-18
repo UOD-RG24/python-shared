@@ -6,7 +6,9 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from uod_rg24_models.shared.api_request_models import ApiRequestModel
 from uod_rg24_models.azure_cloud.StorageAccountModel import StorageAccountModel
 from sklearn.pipeline import Pipeline
-
+from uod_rg24_tools.deployment_tools import (
+    get_project_metadata,
+)
 
 class TrainModel(BaseModel):
     kernel: Literal["linear", "rbf", "poly"] = "linear"
@@ -35,6 +37,28 @@ class TrainModel(BaseModel):
 class SupportVectorMachinesRequestModel(ApiRequestModel):
     train: TrainModel
 
+class ResponseMetadataModel(BaseModel):
+    source: str
+    version: str
+
+def get_response_metadata() -> ResponseMetadataModel:
+    project_metadata = get_project_metadata()
+
+    return ResponseMetadataModel(
+        source=str(
+            project_metadata.get(
+                "name",
+                "unknown",
+            )
+        ),
+        version=str(
+            project_metadata.get(
+                "version",
+                "unknown",
+            )
+        ),
+    )
+
 
 class SupportVectorMachinesResponseDataModel(BaseModel):
     model_config = ConfigDict(
@@ -57,7 +81,9 @@ class SupportVectorMachinesResponseDataModel(BaseModel):
     predicted_values: list[Any] = Field(alias="predictedValues")
     classification_report: dict[str, Any] = Field(alias="classificationReport")
     model_url: str = Field(alias="modelUrl")
-
+    metadata: ResponseMetadataModel = Field(
+            default_factory=get_response_metadata,
+        )
 
 async def save_svm_model(
     experiment_id: str,
