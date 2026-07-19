@@ -40,6 +40,12 @@ from .LogisticRegressionModel import (
     save_logistic_regression_model,
     read_logistic_regression_model,
 )
+from .XGBoostModel import (
+    XGBoostRequestModel,
+    XGBoostResponseModel,
+    save_xgboost_model,
+    read_xgboost_model,
+)
 
 __all__ = [
     "SupportVectorMachinesRequestModel",
@@ -70,4 +76,8 @@ __all__ = [
     "LogisticRegressionResponseModel",
     "save_logistic_regression_model",
     "read_logistic_regression_model",
+    "XGBoostRequestModel",
+    "XGBoostResponseModel",
+    "save_xgboost_model",
+    "read_xgboost_model",
 ]

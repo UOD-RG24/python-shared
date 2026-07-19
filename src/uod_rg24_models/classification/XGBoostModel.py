@@ -2,7 +2,7 @@ from typing import Any, Literal
 import io
 import os
 import joblib
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from uod_rg24_models.shared.api_request_models import ApiRequestModel
 from uod_rg24_models.azure_cloud.StorageAccountModel import StorageAccountModel
 from sklearn.pipeline import Pipeline
@@ -16,41 +16,60 @@ class TrainModel(BaseModel):
         populate_by_name=True,
         extra="forbid",
     )
-    c: float = Field(
+    n_estimators: int = Field(
+        alias="nEstimators",
+        default=100,
+        ge=1,
+        le=10_000,
+    )
+    max_depth: int = Field(
+        alias="maxDepth",
+        default=6,
+        ge=1,
+        le=100,
+    )
+    learning_rate: float = Field(
+        alias="learningRate",
+        default=0.1,
+        gt=0,
+        le=1,
+    )
+    subsample: float = Field(
         default=1.0,
         gt=0,
-        description="Inverse regularisation strength.",
+        le=1,
     )
-    penalty: Literal[
-        "l1",
-        "l2",
-        "elasticnet",
-        "none",
-    ] = "l2"
-    solver: Literal[
-        "lbfgs",
-        "liblinear",
-        "newton-cg",
-        "newton-cholesky",
-        "sag",
-        "saga",
-    ] = "lbfgs"
-    max_iter: int = Field(
-        alias="maxIter",
-        default=1000,
-        ge=1,
-        le=100_000,
+    colsample_bytree: float = Field(
+        alias="colsampleBytree",
+        default=1.0,
+        gt=0,
+        le=1,
     )
-    class_weight: Literal["balanced"] | None = Field(
-        alias="classWeight",
-        default=None,
+    min_child_weight: float = Field(
+        alias="minChildWeight",
+        default=1.0,
+        ge=0,
+    )
+    gamma: float = Field(
+        default=0.0,
+        ge=0,
+    )
+    reg_alpha: float = Field(
+        alias="regAlpha",
+        default=0.0,
+        ge=0,
+    )
+    reg_lambda: float = Field(
+        alias="regLambda",
+        default=1.0,
+        ge=0,
     )
     test_size: float = Field(alias="testSize", default=0.25, gt=0, le=1)
     random_state: int | None = Field(alias="randomState", default=None)
     stratify: bool = True
 
 
-class LogisticRegressionRequestModel(ApiRequestModel):
+class XGBoostRequestModel(ApiRequestModel):
     train: TrainModel
 
 
@@ -78,25 +97,60 @@ def get_response_metadata() -> ResponseMetadataModel:
     )
 
 
-class LogisticRegressionResponseModel(BaseModel):
+class XGBoostResponseModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
     model_type: str = Field(
         alias="modelType",
     )
-    c: float = Field(
-        alias="c",
-        description="Inverse regularisation strength.",
+    n_estimators: int = Field(
+        alias="nEstimators",
+        default=100,
+        ge=1,
+        le=10_000,
     )
-    penalty: str
-    solver: str
-    max_iter: int = Field(
-        alias="maxIter",
+    max_depth: int = Field(
+        alias="maxDepth",
+        default=6,
+        ge=1,
+        le=100,
     )
-    class_weight: str | dict[Any, float] | None = Field(
-        alias="classWeight",
-        default=None,
+    learning_rate: float = Field(
+        alias="learningRate",
+        default=0.1,
+        gt=0,
+        le=1,
+    )
+    subsample: float = Field(
+        default=1.0,
+        gt=0,
+        le=1,
+    )
+    colsample_bytree: float = Field(
+        alias="colsampleBytree",
+        default=1.0,
+        gt=0,
+        le=1,
+    )
+    min_child_weight: float = Field(
+        alias="minChildWeight",
+        default=1.0,
+        ge=0,
+    )
+    gamma: float = Field(
+        default=0.0,
+        ge=0,
+    )
+    reg_alpha: float = Field(
+        alias="regAlpha",
+        default=0.0,
+        ge=0,
+    )
+    reg_lambda: float = Field(
+        alias="regLambda",
+        default=1.0,
+        ge=0,
     )
     training_samples: int = Field(alias="trainingSamples")
     testing_samples: int = Field(
@@ -116,9 +170,8 @@ class LogisticRegressionResponseModel(BaseModel):
     )
 
 
-async def save_logistic_regression_model(
+async def save_xgboost_model(
     experiment_id: str,
-    c: float,
     model: Pipeline,
 ) -> str:
     if not experiment_id:
@@ -136,7 +189,7 @@ async def save_logistic_regression_model(
         compress=3,
     )
     model_buffer.seek(0)
-    blob_name = f"{experiment_id}/model_logistic_regression_c{c}.joblib"
+    blob_name = f"{experiment_id}/model_xgboost.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name
     ) as storage_account_model:
@@ -148,9 +201,8 @@ async def save_logistic_regression_model(
         return blob_client.url
 
 
-async def read_logistic_regression_model(
+async def read_xgboost_model(
     experiment_id: str,
-    c: float,
 ) -> Any:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
@@ -160,7 +212,7 @@ async def read_logistic_regression_model(
         raise ValueError("STORAGE_ACCOUNT_NAME is not configured.")
     if not experiments_container_name:
         raise ValueError("EXPERIMENTS_CONTAINER_NAME is not configured.")
-    blob_name = f"{experiment_id}/model_logistic_regression_c{c}.joblib"
+    blob_name = f"{experiment_id}/model_xgboost.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name,
     ) as storage_account_model:
