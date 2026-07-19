@@ -28,6 +28,12 @@ from .DecisionTreesModel import (
     save_decision_trees_model,
     read_decision_trees_model,
 )
+from .MultiLayerPerceptronModel import (
+    MultiLayerPerceptronRequestModel,
+    MultiLayerPerceptronResponseDataModel,
+    save_multi_layer_perceptron_model,
+    read_multi_layer_perceptron_model,
+)
 
 __all__ = [
     "SupportVectorMachinesRequestModel",
@@ -50,4 +56,8 @@ __all__ = [
     "DecisionTreesResponseDataModel",
     "save_decision_trees_model",
     "read_decision_trees_model",
+    "MultiLayerPerceptronRequestModel",
+    "MultiLayerPerceptronResponseDataModel",
+    "save_multi_layer_perceptron_model",
+    "read_multi_layer_perceptron_model",
 ]
