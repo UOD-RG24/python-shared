@@ -22,6 +22,12 @@ from .GaussianNaiveBayesModel import (
     save_gaussian_naive_bayes_model,
     read_gaussian_naive_bayes_model,
 )
+from .DecisionTreesModel import (
+    DecisionTreesRequestModel,
+    DecisionTreesResponseDataModel,
+    save_decision_trees_model,
+    read_decision_trees_model,
+)
 
 __all__ = [
     "SupportVectorMachinesRequestModel",
@@ -40,4 +46,8 @@ __all__ = [
     "GaussianNaiveBayesResponseDataModel",
     "save_gaussian_naive_bayes_model",
     "read_gaussian_naive_bayes_model",
+    "DecisionTreesRequestModel",
+    "DecisionTreesResponseDataModel",
+    "save_decision_trees_model",
+    "read_decision_trees_model",
 ]
