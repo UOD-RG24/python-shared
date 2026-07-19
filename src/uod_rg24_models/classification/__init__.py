@@ -16,6 +16,12 @@ from .KNearestNeighborsModel import (
     save_k_nearest_neighbors_model,
     read_k_nearest_neighbors_model,
 )
+from .GaussianNaiveBayesModel import (
+    GaussianNaiveBayesRequestModel,
+    GaussianNaiveBayesResponseDataModel,
+    save_gaussian_naive_bayes_model,
+    read_gaussian_naive_bayes_model,
+)
 
 __all__ = [
     "SupportVectorMachinesRequestModel",
@@ -30,4 +36,8 @@ __all__ = [
     "KNearestNeighborsResponseDataModel",
     "save_k_nearest_neighbors_model",
     "read_k_nearest_neighbors_model",
+    "GaussianNaiveBayesRequestModel",
+    "GaussianNaiveBayesResponseDataModel",
+    "save_gaussian_naive_bayes_model",
+    "read_gaussian_naive_bayes_model",
 ]
