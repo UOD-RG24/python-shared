@@ -34,6 +34,12 @@ from .MultiLayerPerceptronModel import (
     save_multi_layer_perceptron_model,
     read_multi_layer_perceptron_model,
 )
+from .LogisticRegressionModel import (
+    LogisticRegressionRequestModel,
+    LogisticRegressionResponseModel,
+    save_logistic_regression_model,
+    read_logistic_regression_model,
+)
 
 __all__ = [
     "SupportVectorMachinesRequestModel",
@@ -60,4 +66,8 @@ __all__ = [
     "MultiLayerPerceptronResponseDataModel",
     "save_multi_layer_perceptron_model",
     "read_multi_layer_perceptron_model",
+    "LogisticRegressionRequestModel",
+    "LogisticRegressionResponseModel",
+    "save_logistic_regression_model",
+    "read_logistic_regression_model",
 ]
