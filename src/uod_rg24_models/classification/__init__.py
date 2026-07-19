@@ -10,6 +10,12 @@ from .RandomForestModel import (
     save_random_forest_model,
     read_random_forest_model,
 )
+from .KNearestNeighborsModel import (
+    KNearestNeighborsRequestModel,
+    KNearestNeighborsResponseDataModel,
+    save_k_nearest_neighbors_model,
+    read_k_nearest_neighbors_model,
+)
 
 __all__ = [
     "SupportVectorMachinesRequestModel",
@@ -20,4 +26,8 @@ __all__ = [
     "RandomForestResponseDataModel",
     "save_random_forest_model",
     "read_random_forest_model",
+    "KNearestNeighborsRequestModel",
+    "KNearestNeighborsResponseDataModel",
+    "save_k_nearest_neighbors_model",
+    "read_k_nearest_neighbors_model",
 ]
