@@ -8,7 +8,7 @@ from .BoxPlotForCrossValidationModel import (
     LogisticRegressionVisualisationModel,
     XGBoostVisualisationModel,
     BoxPlotForCrossValidationRequestModel,
-    macro_specificity
+    macro_specificity,
 )
 
 __all__ = [
@@ -21,5 +21,5 @@ __all__ = [
     "LogisticRegressionVisualisationModel",
     "XGBoostVisualisationModel",
     "BoxPlotForCrossValidationRequestModel",
-    "macro_specificity"
+    "macro_specificity",
 ]
