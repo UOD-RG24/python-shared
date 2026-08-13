@@ -1,13 +1,17 @@
-from src.uod_rg24_models.shared.azure_blob_models import InputOutputBlobBaseModel
+from uod_rg24_models.azure_cloud.storage_account_models import BlobBaseModel
 
 
-class StandardScalerModel(InputOutputBlobBaseModel):
+class DatasetModel(BlobBaseModel):
     pass
 
 
-class MinMaxScalerModel(InputOutputBlobBaseModel):
+class StandardScalerModel(BlobBaseModel):
     pass
 
 
-class MaxAbsScalerModel(InputOutputBlobBaseModel):
+class MinMaxScalerModel(BlobBaseModel):
+    pass
+
+
+class MaxAbsScalerModel(BlobBaseModel):
     pass

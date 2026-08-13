@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class InputOutputBlobBaseModel(BaseModel):
+class BlobBaseModel(BaseModel):
     azure_storage_account_name: str = Field(
         alias="azureStorageAccountName",
         min_length=1,
@@ -10,11 +10,11 @@ class InputOutputBlobBaseModel(BaseModel):
         alias="azureContainerName",
         min_length=1,
     )
-    input_blob_path: str = Field(
-        alias="inputBlobPath",
+    directory_name: str = Field(
+        alias="directoryName",
         min_length=1,
     )
-    output_blob_path: str = Field(
-        alias="outputBlobPath",
+    file_name: str = Field(
+        alias="fileName",
         min_length=1,
     )

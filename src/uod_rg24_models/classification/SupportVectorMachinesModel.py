@@ -4,7 +4,7 @@ import os
 import joblib
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from uod_rg24_models.shared.api_request_models import ApiRequestModel
-from uod_rg24_models.azure_cloud.StorageAccountModel import StorageAccountModel
+from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 from sklearn.pipeline import Pipeline
 from uod_rg24_tools.deployment_tools import (
     get_project_metadata,

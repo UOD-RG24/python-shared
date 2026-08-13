@@ -1,7 +1,7 @@
 import pandas as pd
 import io
 import os
-from uod_rg24_models.azure_cloud.StorageAccountModel import StorageAccountModel
+from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 
 
 async def save_digital_twins_data(experiment_id: str, dataframe: pd.DataFrame) -> str:
