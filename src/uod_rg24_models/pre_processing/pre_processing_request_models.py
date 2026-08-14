@@ -3,28 +3,33 @@ from datetime import datetime
 from typing import Generic, Optional, TypeVar
 from pydantic import BaseModel, ConfigDict, Field
 from uod_rg24_tools import datetime_tools
+from uod_rg24_models.pre_processing.tabular_data.standard_scaler_process_models import (
+    StandardScalerStandardizationProcessRequestModel,
+)
 from uod_rg24_models.pre_processing.pre_processing_shared_models import (
     MetadataModel,
 )
 from uod_rg24_models.pre_processing.tabular_data.standardization_models import (
     DatasetModel,
+    MinMaxScalerModel,
+    StandardScalerModel,
+    MaxAbsScalerModel,
 )
 
+TProcessRequest = TypeVar("TProcessRequest")
 TInput = TypeVar("TInput")
+TOutput = TypeVar("TOutput")
 
 
-class StandardizationRequestModel(BaseModel, Generic[TInput]):
+class StandardizationRequestModel(BaseModel, Generic[TProcessRequest, TInput, TOutput]):
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",
     )
-    experiment_id: str = Field(
-        alias="experimentId",
-        description="Unique identifier used to correlate the experiment.",
-    )
     dataset_id: str = Field(
         alias="datasetId",
-        description="Unique identifier used to correlate the dataset.",
+        min_length=1,
+        description="Unique identifier for the dataset to be standardized.",
     )
     requested_by: Optional[str] = Field(
         default=None,
@@ -41,25 +46,37 @@ class StandardizationRequestModel(BaseModel, Generic[TInput]):
         alias="requestMetadata",
         description="Optional information about the request source.",
     )
+    standardization_process_request: TProcessRequest = Field(
+        alias="standardizationProcessRequest",
+        description="Optional additional details specific to the standardization request.",
+    )
     input_blob: TInput = Field(
         alias="inputBlob",
         description="Configuration and Azure Blob information required for preprocessing.",
     )
+    output_blob: TOutput = Field(
+        alias="outputBlob",
+        description="Configuration and Azure Blob information for the standardized output.",
+    )
 
 
 class TabularDataPreprocessingUsingStandardScalerStandardizationRequestModel(
-    StandardizationRequestModel[DatasetModel]
+    StandardizationRequestModel[
+        StandardScalerStandardizationProcessRequestModel,
+        DatasetModel,
+        StandardScalerModel,
+    ]
 ):
     pass
 
 
 class TabularDataPreprocessingUsingMinMaxScalerStandardizationRequestModel(
-    StandardizationRequestModel[DatasetModel]
+    StandardizationRequestModel[None, DatasetModel, MinMaxScalerModel]
 ):
     pass
 
 
 class TabularDataPreprocessingUsingMaxAbsScalerStandardizationRequestModel(
-    StandardizationRequestModel[DatasetModel]
+    StandardizationRequestModel[None, DatasetModel, MaxAbsScalerModel]
 ):
     pass

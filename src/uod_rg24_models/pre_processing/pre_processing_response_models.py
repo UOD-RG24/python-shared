@@ -3,6 +3,10 @@ from datetime import datetime
 from typing import Generic, Optional, TypeVar
 from pydantic import BaseModel, ConfigDict, Field
 from uod_rg24_tools import datetime_tools
+from uod_rg24_models.pre_processing.tabular_data.standard_scaler_process_models import (
+    StandardScalerStandardizationProcessResponseModel,
+    StandardScalerStandardizationProcessRequestModel,
+)
 from uod_rg24_models.pre_processing.pre_processing_shared_models import (
     ErrorModel,
     MetadataModel,
@@ -14,11 +18,15 @@ from uod_rg24_models.pre_processing.tabular_data.standardization_models import (
     StandardScalerModel,
 )
 
+TProcessRequest = TypeVar("TProcessRequest")
+TProcessResponse = TypeVar("TProcessResponse")
 TInput = TypeVar("TInput")
 TOutput = TypeVar("TOutput")
 
 
-class StandardizationResponseModel(BaseModel, Generic[TInput, TOutput]):
+class StandardizationResponseModel(
+    BaseModel, Generic[TProcessRequest, TProcessResponse, TInput, TOutput]
+):
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",
@@ -79,10 +87,18 @@ class StandardizationResponseModel(BaseModel, Generic[TInput, TOutput]):
         default=None,
         description="Optional additional request metadata.",
     )
-    reponse_metadata: Optional[MetadataModel] = Field(
+    response_metadata: Optional[MetadataModel] = Field(
         alias="responseMetadata",
         default=None,
         description="Optional additional response metadata.",
+    )
+    standardization_process_request: TProcessRequest = Field(
+        alias="standardizationProcessRequest",
+        description="Optional additional details specific to the standardization request.",
+    )
+    standardization_process_response: TProcessResponse = Field(
+        alias="standardizationProcessResponse",
+        description="Optional detailed result of the standardization operation.",
     )
     input_blob: TInput = Field(
         alias="inputBlob",
@@ -95,19 +111,23 @@ class StandardizationResponseModel(BaseModel, Generic[TInput, TOutput]):
 
 
 class StandardizationSuccessResponseModel(
-    StandardizationResponseModel[TInput, TOutput],
-    Generic[TInput, TOutput],
+    StandardizationResponseModel[TProcessRequest, TProcessResponse, TInput, TOutput],
+    Generic[TProcessRequest, TProcessResponse, TInput, TOutput],
 ):
     success: bool = True
+    standardization_process_request: TProcessRequest
+    standardization_process_response: TProcessResponse
     input_blob: TInput
     output_blob: TOutput
     error: None = None
 
 
 class StandardizationErrorResponseModel(
-    StandardizationResponseModel[None, None],
+    StandardizationResponseModel[None, None, None, None],
 ):
     success: bool = False
+    standardization_process_request: None = None
+    standardization_process_response: None = None
     input_blob: None = None
     output_blob: None = None
     error: ErrorModel
@@ -115,6 +135,8 @@ class StandardizationErrorResponseModel(
 
 class TabularDataPreprocessingUsingStandardScalerStandardizationResponseModel(
     StandardizationSuccessResponseModel[
+        StandardScalerStandardizationProcessRequestModel,
+        StandardScalerStandardizationProcessResponseModel,
         DatasetModel,
         StandardScalerModel,
     ]
@@ -124,6 +146,8 @@ class TabularDataPreprocessingUsingStandardScalerStandardizationResponseModel(
 
 class TabularDataPreprocessingUsingMinMaxScalerStandardizationResponseModel(
     StandardizationSuccessResponseModel[
+        None,
+        None,
         DatasetModel,
         MinMaxScalerModel,
     ]
@@ -133,6 +157,8 @@ class TabularDataPreprocessingUsingMinMaxScalerStandardizationResponseModel(
 
 class TabularDataPreprocessingUsingMaxAbsScalerStandardizationResponseModel(
     StandardizationSuccessResponseModel[
+        None,
+        None,
         DatasetModel,
         MaxAbsScalerModel,
     ]

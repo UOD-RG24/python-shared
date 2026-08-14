@@ -65,16 +65,25 @@ def elapsed_ms(start_time: float) -> float:
     )
 
 
-def parse_experiment_id(value: Any) -> uuid.UUID:
+def _parse_experiment_id(
+    req: func.HttpRequest,
+) -> str:
+    value = req.get_json().get("experimentId")
     if value is None:
-        return uuid.uuid4()
+        return str(uuid.uuid4())
     try:
-        return uuid.UUID(str(value))
-    except (TypeError, ValueError, AttributeError):
-        return uuid.uuid4()
+        return str(uuid.UUID(str(value)))
+    except (
+        TypeError,
+        ValueError,
+        AttributeError,
+    ):
+        return str(uuid.uuid4())
 
 
-def get_trace_id(req: func.HttpRequest) -> str:
+def _get_trace_id(
+    req: func.HttpRequest,
+) -> str:
     trace_id = req.headers.get("X-Trace-ID")
     if trace_id:
         return trace_id
@@ -83,5 +92,4 @@ def get_trace_id(req: func.HttpRequest) -> str:
         components = traceparent.split("-")
         if len(components) == 4 and len(components[1]) == 32:
             return components[1]
-
     return uuid.uuid4().hex
