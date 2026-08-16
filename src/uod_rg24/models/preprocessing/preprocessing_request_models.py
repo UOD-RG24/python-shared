@@ -14,6 +14,9 @@ from uod_rg24.models.preprocessing.tabular.max_abs_scaler_process_models import 
 from uod_rg24.models.preprocessing.tabular.min_max_scaler_process_models import (
     MinMaxScalerStandardizationProcessRequestModel,
 )
+from uod_rg24.models.preprocessing.tabular.robust_scaler_process_models import (
+    RobustScalerStandardizationProcessRequestModel,
+)
 from uod_rg24.models.preprocessing.tabular.standard_scaler_process_models import (
     StandardScalerStandardizationProcessRequestModel,
 )
@@ -21,6 +24,7 @@ from uod_rg24.models.preprocessing.tabular.standardization_models import (
     DatasetModel,
     MaxAbsScalerModel,
     MinMaxScalerModel,
+    RobustScalerModel,
     StandardScalerModel,
 )
 from uod_rg24.tools import datetime_tools
@@ -90,6 +94,16 @@ class TabularDataPreprocessingUsingMinMaxScalerStandardizationRequestModel(
 class TabularDataPreprocessingUsingMaxAbsScalerStandardizationRequestModel(
     StandardizationRequestModel[
         MaxAbsScalerStandardizationProcessRequestModel, DatasetModel, MaxAbsScalerModel
+    ]
+):
+    pass
+
+
+class TabularDataPreprocessingUsingRobustScalerStandardizationRequestModel(
+    StandardizationRequestModel[
+        RobustScalerStandardizationProcessRequestModel,
+        DatasetModel,
+        RobustScalerModel,
     ]
 ):
     pass

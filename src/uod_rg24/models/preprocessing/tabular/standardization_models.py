@@ -15,3 +15,7 @@ class MinMaxScalerModel(BlobBaseModel):
 
 class MaxAbsScalerModel(BlobBaseModel):
     pass
+
+
+class RobustScalerModel(BlobBaseModel):
+    pass
