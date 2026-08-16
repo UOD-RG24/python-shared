@@ -5,19 +5,19 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from uod_rg24_models.pre_processing.pre_processing_shared_models import (
+from uod_rg24.models.pre_processing.pre_processing_shared_models import (
     MetadataModel,
 )
-from uod_rg24_models.pre_processing.tabular_data.standard_scaler_process_models import (
+from uod_rg24.models.pre_processing.tabular_data.standard_scaler_process_models import (
     StandardScalerStandardizationProcessRequestModel,
 )
-from uod_rg24_models.pre_processing.tabular_data.standardization_models import (
+from uod_rg24.models.pre_processing.tabular_data.standardization_models import (
     DatasetModel,
     MaxAbsScalerModel,
     MinMaxScalerModel,
     StandardScalerModel,
 )
-from uod_rg24_tools import datetime_tools
+from uod_rg24.tools import datetime_tools
 
 TProcessRequest = TypeVar("TProcessRequest")
 TInput = TypeVar("TInput")

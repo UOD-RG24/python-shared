@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from types import TracebackType
 from typing import BinaryIO, Self
 
 from azure.core.exceptions import ResourceExistsError
@@ -59,9 +60,11 @@ class StorageAccountModel:
 
         if not self.storage_account_name:
             raise ValueError("storage_account_name cannot be empty.")
+
         self.storage_account_url = (
-            f"https://{self.storage_account_name}" ".blob.core.windows.net"
+            f"https://{self.storage_account_name}.blob.core.windows.net"
         )
+
         self.default_azure_credential = DefaultAzureCredential()
 
         self.blob_service_client = BlobServiceClient(
@@ -74,13 +77,16 @@ class StorageAccountModel:
         container_name: str,
     ) -> bool:
         container_name = container_name.strip()
+
         if not container_name:
             raise ValueError("container_name cannot be empty.")
+
         container_client: ContainerClient = (
             self.blob_service_client.get_container_client(
                 container=container_name,
             )
         )
+
         try:
             await container_client.create_container()
             return True
@@ -98,21 +104,27 @@ class StorageAccountModel:
     ) -> BlobClient:
         container_name = container_name.strip()
         blob_name = blob_name.strip()
+
         if not container_name:
             raise ValueError("container_name cannot be empty.")
+
         if not blob_name:
             raise ValueError("blob_name cannot be empty.")
+
         container_created = await self.create_blob_container(
             container_name=container_name,
         )
+
         if container_created:
             print(f"Container '{container_name}' created.")
         else:
             print(f"Container '{container_name}' already exists.")
+
         blob_client: BlobClient = self.blob_service_client.get_blob_client(
             container=container_name,
             blob=blob_name,
         )
+
         await blob_client.upload_blob(
             data=data,
             overwrite=overwrite,
@@ -120,6 +132,7 @@ class StorageAccountModel:
                 content_type=content_type,
             ),
         )
+
         return blob_client
 
     async def download_blob(
@@ -129,8 +142,10 @@ class StorageAccountModel:
     ) -> bytes:
         container_name = container_name.strip()
         blob_name = blob_name.strip()
+
         if not container_name:
             raise ValueError("container_name cannot be empty.")
+
         if not blob_name:
             raise ValueError("blob_name cannot be empty.")
 
@@ -138,6 +153,7 @@ class StorageAccountModel:
             container=container_name,
             blob=blob_name,
         )
+
         download_stream = await blob_client.download_blob()
         return await download_stream.readall()
 
@@ -150,8 +166,8 @@ class StorageAccountModel:
 
     async def __aexit__(
         self,
-        exc_type,
-        exc_value,
-        traceback,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         await self.close()

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uod-rg24-python-shared"
-version = "1.0.17"
+version = "1.0.18"
 description = "A reusable Python class library in UOD RG24"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,5 +12,20 @@ authors = [
     { name = "Gayan Kuruppu" }
 ]
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["uod_rg24*"]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.12"
+
+reportMissingTypeStubs = "warning"
+reportUnknownParameterType = "error"
+reportUnknownArgumentType = "error"
+reportUnknownVariableType = "error"
+reportUnknownMemberType = "error"
+reportUntypedFunctionDecorator = "error"

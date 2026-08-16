@@ -1,10 +1,10 @@
 import io
 import os
 
-import joblib
+import joblib  # pyright: ignore[reportMissingTypeStubs]
 from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient, ContentSettings
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline  # pyright: ignore[reportMissingTypeStubs]
 
 
 def save_model_to_blob_storage(
@@ -16,9 +16,12 @@ def save_model_to_blob_storage(
     container_name = "experiments"
     blob_name = f"{request_id}_svm_model.joblib"
 
-    # Serialize the complete pipeline into memory.
     model_buffer = io.BytesIO()
-    joblib.dump(model, model_buffer)
+
+    joblib.dump(  # pyright: ignore[reportUnknownMemberType]
+        model,
+        model_buffer,
+    )
     model_buffer.seek(0)
 
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
@@ -42,6 +45,4 @@ def save_model_to_blob_storage(
         },
     )
 
-    blob_path = f"{container_name}/{blob_name}"
-
-    return blob_path
+    return f"{container_name}/{blob_name}"

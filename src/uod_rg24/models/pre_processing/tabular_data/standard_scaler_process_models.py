@@ -9,6 +9,7 @@ class ProcessStepModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+
     step: str
     started_at: datetime = Field(alias="startedAt")
     completed_at: datetime = Field(alias="completedAt")
@@ -23,6 +24,7 @@ class FileProcessInfoModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+
     azure_storage_account_name: str = Field(alias="azureStorageAccountName")
     azure_container_name: str = Field(alias="azureContainerName")
     directory_name: str = Field(alias="directoryName")
@@ -43,6 +45,7 @@ class TemporaryFileInfoModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+
     temporary_directory: str = Field(alias="temporaryDirectory")
     input_file_path: str = Field(alias="inputFilePath")
     output_file_path: str = Field(alias="outputFilePath")
@@ -52,15 +55,16 @@ class StandardScalerInfoModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+
     numeric_columns: list[str] = Field(alias="numericColumns")
     numeric_column_count: int = Field(alias="numericColumnCount")
     rows_processed: int = Field(alias="rowsProcessed")
     fit_chunks_processed: int = Field(alias="fitChunksProcessed")
     transform_chunks_processed: int = Field(alias="transformChunksProcessed")
     chunk_size: int = Field(alias="chunkSize")
-    mean: list[float] = Field(default_factory=list)
-    variance: list[float] = Field(default_factory=list)
-    scale: list[float] = Field(default_factory=list)
+    mean: list[float] = Field(default_factory=list[float])
+    variance: list[float] = Field(default_factory=list[float])
+    scale: list[float] = Field(default_factory=list[float])
     samples_seen: int | list[int] | None = Field(
         default=None,
         alias="samplesSeen",
@@ -71,6 +75,7 @@ class StandardScalerStandardizationProcessResponseModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+
     success: bool
     started_at: datetime = Field(alias="startedAt")
     completed_at: datetime = Field(alias="completedAt")
@@ -82,7 +87,9 @@ class StandardScalerStandardizationProcessResponseModel(BaseModel):
     output_file: FileProcessInfoModel = Field(alias="outputFile")
     temporary_files: TemporaryFileInfoModel = Field(alias="temporaryFiles")
     scaler: StandardScalerInfoModel
-    steps: list[ProcessStepModel] = Field(default_factory=list)
+    steps: list[ProcessStepModel] = Field(
+        default_factory=list[ProcessStepModel],
+    )
 
 
 class StandardScalerStandardizationProcessRequestModel(BaseModel):

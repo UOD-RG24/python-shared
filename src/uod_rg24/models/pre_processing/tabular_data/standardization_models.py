@@ -1,4 +1,4 @@
-from uod_rg24_models.azure_cloud.storage_account_models import BlobBaseModel
+from uod_rg24.models.azure_cloud.storage_account_models import BlobBaseModel
 
 
 class DatasetModel(BlobBaseModel):
