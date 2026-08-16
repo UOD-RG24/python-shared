@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Any, Optional, TypeVar
+
+from typing import Any, TypeVar
+
 from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
@@ -7,7 +9,7 @@ T = TypeVar("T")
 
 class MetadataModel(BaseModel):
     model_config = ConfigDict(extra="allow")
-    application: Optional[str] = Field(
+    application: str | None = Field(
         default=None,
         description="Application or service that submitted the request.",
         examples=["web-dashboard"],
@@ -17,7 +19,7 @@ class MetadataModel(BaseModel):
         description="Request model or API version.",
         examples=["1.0"],
     )
-    additional_data: Optional[dict[str, Any]] = Field(
+    additional_data: dict[str, Any] | None = Field(
         default=None,
         description="Additional request metadata.",
     )
@@ -37,7 +39,7 @@ class ErrorModel(BaseModel):
         min_length=1,
         description="Human-readable error description.",
     )
-    details: Optional[Any] = Field(
+    details: Any | None = Field(
         default=None,
         description="Optional structured error details.",
     )

@@ -1,11 +1,11 @@
 from .standardization_models import (
-    StandardScalerModel,
-    MinMaxScalerModel,
     MaxAbsScalerModel,
+    MinMaxScalerModel,
+    StandardScalerModel,
 )
 
 __all__ = [
-    "StandardScalerModel",
-    "MinMaxScalerModel",
     "MaxAbsScalerModel",
+    "MinMaxScalerModel",
+    "StandardScalerModel",
 ]

@@ -1,32 +1,26 @@
-from typing import Any, Literal
 import io
 import os
+from typing import Any, Literal
+
 import joblib
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
-from uod_rg24_models.shared.api_request_models import ApiRequestModel
-from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
+from pydantic import BaseModel, ConfigDict, Field
 from sklearn.pipeline import Pipeline
+from uod_rg24_models.shared.api_request_models import ApiRequestModel
+
+from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 from uod_rg24_tools.deployment_tools import (
     get_project_metadata,
 )
 
 
 class TrainModel(BaseModel):
-    n_estimators: int = Field(alias="nEstimators", default=100, gt=0)
-    max_depth: int | None = Field(alias="maxDepth", default=None, gt=0)
-    min_samples_split: int = Field(alias="minSamplesSplit", default=2, gt=2)
-    min_samples_leaf: int = Field(alias="minSamplesLeaf", default=1, gt=0)
-    max_features: Literal["auto", "sqrt", "log2"] | None = Field(
-        alias="maxFeatures",
-        default=None,
-    )
-    criterion: Literal["gini", "entropy"] = Field(alias="criterion", default="gini")
+    kernel: Literal["linear", "rbf", "poly"] = "linear"
     test_size: float = Field(alias="testSize", default=0.25, gt=0, lt=1)
     random_state: int = Field(alias="randomState", default=42)
     stratify: bool = True
 
 
-class RandomForestRequestModel(ApiRequestModel):
+class SupportVectorMachinesRequestModel(ApiRequestModel):
     train: TrainModel
 
 
@@ -54,21 +48,14 @@ def get_response_metadata() -> ResponseMetadataModel:
     )
 
 
-class RandomForestResponseDataModel(BaseModel):
+class SupportVectorMachinesResponseDataModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
     model_type: str = Field(
         alias="modelType",
     )
-    n_estimators: int = Field(alias="nEstimators")
-    criterion: Literal["gini", "entropy"] = Field(alias="criterion")
-    max_depth: int | None = Field(alias="maxDepth")
-    min_samples_split: int = Field(alias="minSamplesSplit")
-    min_samples_leaf: int = Field(alias="minSamplesLeaf")
-    max_features: Literal["auto", "sqrt", "log2"] | None = Field(
-        alias="maxFeatures", default=None
-    )
+    kernel: str
     training_samples: int = Field(alias="trainingSamples")
     testing_samples: int = Field(
         alias="testingSamples",
@@ -87,10 +74,10 @@ class RandomForestResponseDataModel(BaseModel):
     )
 
 
-async def save_random_forest_model(
+async def save_svm_model(
     experiment_id: str,
     model: Pipeline,
-    n_estimators: int,
+    kernel: Literal["linear", "rbf", "poly"] = "linear",
 ) -> str:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
@@ -107,7 +94,7 @@ async def save_random_forest_model(
         compress=3,
     )
     model_buffer.seek(0)
-    blob_name = f"{experiment_id}/model_random_forest_{n_estimators}.joblib"
+    blob_name = f"{experiment_id}/model_svm_{kernel}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name
     ) as storage_account_model:
@@ -119,9 +106,9 @@ async def save_random_forest_model(
         return blob_client.url
 
 
-async def read_random_forest_model(
+async def read_svm_model(
     experiment_id: str,
-    n_estimators: int,
+    kernel: Literal["linear", "rbf", "poly"] = "linear",
 ) -> Any:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
@@ -131,7 +118,7 @@ async def read_random_forest_model(
         raise ValueError("STORAGE_ACCOUNT_NAME is not configured.")
     if not experiments_container_name:
         raise ValueError("EXPERIMENTS_CONTAINER_NAME is not configured.")
-    blob_name = f"{experiment_id}/model_random_forest_{n_estimators}.joblib"
+    blob_name = f"{experiment_id}/model_svm_{kernel}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name,
     ) as storage_account_model:

@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 from datetime import datetime
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, ConfigDict, Field
-from uod_rg24_tools import datetime_tools
-from uod_rg24_models.pre_processing.tabular_data.standard_scaler_process_models import (
-    StandardScalerStandardizationProcessResponseModel,
-    StandardScalerStandardizationProcessRequestModel,
-)
+
 from uod_rg24_models.pre_processing.pre_processing_shared_models import (
     ErrorModel,
     MetadataModel,
+)
+from uod_rg24_models.pre_processing.tabular_data.standard_scaler_process_models import (
+    StandardScalerStandardizationProcessRequestModel,
+    StandardScalerStandardizationProcessResponseModel,
 )
 from uod_rg24_models.pre_processing.tabular_data.standardization_models import (
     DatasetModel,
@@ -17,20 +19,24 @@ from uod_rg24_models.pre_processing.tabular_data.standardization_models import (
     MinMaxScalerModel,
     StandardScalerModel,
 )
+from uod_rg24_tools import datetime_tools
 
 TProcessRequest = TypeVar("TProcessRequest")
 TProcessResponse = TypeVar("TProcessResponse")
 TInput = TypeVar("TInput")
 TOutput = TypeVar("TOutput")
+TError = TypeVar("TError")
 
 
 class StandardizationResponseModel(
-    BaseModel, Generic[TProcessRequest, TProcessResponse, TInput, TOutput]
+    BaseModel,
+    Generic[TProcessRequest, TProcessResponse, TInput, TOutput, TError],
 ):
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",
     )
+
     experiment_id: str = Field(
         alias="experimentId",
         description="Identifier of the associated experiment.",
@@ -58,7 +64,7 @@ class StandardizationResponseModel(
         alias="message",
         description="Human-readable response message.",
     )
-    requested_by: Optional[str] = Field(
+    requested_by: str | None = Field(
         alias="requestedBy",
         default=None,
         description="Optional identifier of the user or system that initiated the request.",
@@ -77,17 +83,16 @@ class StandardizationResponseModel(
         ge=0,
         description="Total request-processing duration in milliseconds.",
     )
-    error: Optional[ErrorModel] = Field(
+    error: TError = Field(
         alias="error",
-        default=None,
         description="Error details when success is false.",
     )
-    request_metadata: Optional[MetadataModel] = Field(
+    request_metadata: MetadataModel | None = Field(
         alias="requestMetadata",
         default=None,
         description="Optional additional request metadata.",
     )
-    response_metadata: Optional[MetadataModel] = Field(
+    response_metadata: MetadataModel | None = Field(
         alias="responseMetadata",
         default=None,
         description="Optional additional response metadata.",
@@ -111,7 +116,13 @@ class StandardizationResponseModel(
 
 
 class StandardizationSuccessResponseModel(
-    StandardizationResponseModel[TProcessRequest, TProcessResponse, TInput, TOutput],
+    StandardizationResponseModel[
+        TProcessRequest,
+        TProcessResponse,
+        TInput,
+        TOutput,
+        None,
+    ],
     Generic[TProcessRequest, TProcessResponse, TInput, TOutput],
 ):
     success: bool = True
@@ -123,14 +134,19 @@ class StandardizationSuccessResponseModel(
 
 
 class StandardizationErrorResponseModel(
-    StandardizationResponseModel[None, None, None, None],
+    StandardizationResponseModel[
+        None,
+        None,
+        None,
+        None,
+        ErrorModel,
+    ],
 ):
     success: bool = False
     standardization_process_request: None = None
     standardization_process_response: None = None
     input_blob: None = None
     output_blob: None = None
-    error: ErrorModel
 
 
 class TabularDataPreprocessingUsingStandardScalerStandardizationResponseModel(

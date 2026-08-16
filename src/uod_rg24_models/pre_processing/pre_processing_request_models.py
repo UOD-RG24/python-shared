@@ -1,20 +1,23 @@
 from __future__ import annotations
+
 from datetime import datetime
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, ConfigDict, Field
-from uod_rg24_tools import datetime_tools
-from uod_rg24_models.pre_processing.tabular_data.standard_scaler_process_models import (
-    StandardScalerStandardizationProcessRequestModel,
-)
+
 from uod_rg24_models.pre_processing.pre_processing_shared_models import (
     MetadataModel,
 )
+from uod_rg24_models.pre_processing.tabular_data.standard_scaler_process_models import (
+    StandardScalerStandardizationProcessRequestModel,
+)
 from uod_rg24_models.pre_processing.tabular_data.standardization_models import (
     DatasetModel,
+    MaxAbsScalerModel,
     MinMaxScalerModel,
     StandardScalerModel,
-    MaxAbsScalerModel,
 )
+from uod_rg24_tools import datetime_tools
 
 TProcessRequest = TypeVar("TProcessRequest")
 TInput = TypeVar("TInput")
@@ -31,7 +34,7 @@ class StandardizationRequestModel(BaseModel, Generic[TProcessRequest, TInput, TO
         min_length=1,
         description="Unique identifier for the dataset to be standardized.",
     )
-    requested_by: Optional[str] = Field(
+    requested_by: str | None = Field(
         default=None,
         alias="requestedBy",
         description="Optional identifier of the user or system that initiated the request.",
@@ -41,7 +44,7 @@ class StandardizationRequestModel(BaseModel, Generic[TProcessRequest, TInput, TO
         alias="requestedAt",
         description="UTC timestamp when the request was created.",
     )
-    request_metadata: Optional[MetadataModel] = Field(
+    request_metadata: MetadataModel | None = Field(
         default=None,
         alias="requestMetadata",
         description="Optional information about the request source.",

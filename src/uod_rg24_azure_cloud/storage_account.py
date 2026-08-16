@@ -1,5 +1,4 @@
 import io
-import logging
 import os
 
 import joblib
@@ -9,7 +8,7 @@ from sklearn.pipeline import Pipeline
 
 
 def save_model_to_blob_storage(
-    rquest_id: str,
+    request_id: str,
     model: Pipeline,
 ) -> str:
     connection_string = os.environ["MODEL_STORAGE_CONNECTION_STRING"]
@@ -44,11 +43,5 @@ def save_model_to_blob_storage(
     )
 
     blob_path = f"{container_name}/{blob_name}"
-
-    logging.info(
-        "SVM model uploaded successfully. " "request_id=%s blob_path=%s",
-        request_id,
-        blob_path,
-    )
 
     return blob_path

@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -88,6 +90,7 @@ class StandardScalerStandardizationProcessRequestModel(BaseModel):
         populate_by_name=True,
         extra="forbid",
     )
+
     with_mean: bool = Field(
         default=True,
         alias="withMean",
@@ -96,8 +99,9 @@ class StandardScalerStandardizationProcessRequestModel(BaseModel):
         default=True,
         alias="withStd",
     )
-    copy: bool = Field(
+    copy_: bool = Field(
         default=True,
+        alias="copy",
     )
     chunk_size: int = Field(
         default=100_000,

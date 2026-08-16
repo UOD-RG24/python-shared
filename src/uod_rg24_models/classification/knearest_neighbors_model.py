@@ -1,56 +1,33 @@
-from typing import Any, Literal
 import io
 import os
+from typing import Any, Literal
+
 import joblib
 from pydantic import BaseModel, ConfigDict, Field
-from uod_rg24_models.shared.api_request_models import ApiRequestModel
-from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 from sklearn.pipeline import Pipeline
+from uod_rg24_models.shared.api_request_models import ApiRequestModel
+
+from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 from uod_rg24_tools.deployment_tools import (
     get_project_metadata,
 )
 
 
 class TrainModel(BaseModel):
-    model_config = ConfigDict(
-        populate_by_name=True,
-        extra="forbid",
+    n_neighbors: int = Field(alias="nNeighbors", default=5, gt=0)
+    weights: Literal["uniform", "distance"] = Field(alias="weights", default="uniform")
+    algorithm: Literal["auto", "ball_tree", "kd_tree", "brute"] = Field(
+        alias="algorithm", default="auto"
     )
-    c: float = Field(
-        default=1.0,
-        gt=0,
-        description="Inverse regularisation strength.",
-    )
-    penalty: Literal[
-        "l1",
-        "l2",
-        "elasticnet",
-        "none",
-    ] = "l2"
-    solver: Literal[
-        "lbfgs",
-        "liblinear",
-        "newton-cg",
-        "newton-cholesky",
-        "sag",
-        "saga",
-    ] = "lbfgs"
-    max_iter: int = Field(
-        alias="maxIter",
-        default=1000,
-        ge=1,
-        le=100_000,
-    )
-    class_weight: Literal["balanced"] | None = Field(
-        alias="classWeight",
-        default=None,
-    )
+    metric: str = Field(alias="metric", default="minkowski")
     test_size: float = Field(alias="testSize", default=0.25, gt=0, le=1)
     random_state: int | None = Field(alias="randomState", default=None)
+    p: int = Field(alias="p", default=2, gt=0)
+    n_jobs: int = Field(alias="nJobs", default=-1)
     stratify: bool = True
 
 
-class LogisticRegressionRequestModel(ApiRequestModel):
+class KNearestNeighborsRequestModel(ApiRequestModel):
     train: TrainModel
 
 
@@ -78,25 +55,30 @@ def get_response_metadata() -> ResponseMetadataModel:
     )
 
 
-class LogisticRegressionResponseModel(BaseModel):
+class KNearestNeighborsResponseDataModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
     model_type: str = Field(
         alias="modelType",
     )
-    c: float = Field(
-        alias="c",
-        description="Inverse regularisation strength.",
+    n_neighbors: int = Field(
+        alias="nNeighbors",
     )
-    penalty: str
-    solver: str
-    max_iter: int = Field(
-        alias="maxIter",
+    weights: str = Field(
+        alias="weights",
     )
-    class_weight: str | dict[Any, float] | None = Field(
-        alias="classWeight",
-        default=None,
+    algorithm: str = Field(
+        alias="algorithm",
+    )
+    metric: str = Field(
+        alias="metric",
+    )
+    p: int = Field(
+        alias="p",
+    )
+    n_jobs: int = Field(
+        alias="nJobs",
     )
     training_samples: int = Field(alias="trainingSamples")
     testing_samples: int = Field(
@@ -116,10 +98,10 @@ class LogisticRegressionResponseModel(BaseModel):
     )
 
 
-async def save_logistic_regression_model(
+async def save_k_nearest_neighbors_model(
     experiment_id: str,
-    c: float,
     model: Pipeline,
+    n_neighbors: int,
 ) -> str:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
@@ -136,7 +118,7 @@ async def save_logistic_regression_model(
         compress=3,
     )
     model_buffer.seek(0)
-    blob_name = f"{experiment_id}/model_logistic_regression_c{c}.joblib"
+    blob_name = f"{experiment_id}/model_k_nearest_neighbors_{n_neighbors}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name
     ) as storage_account_model:
@@ -148,9 +130,9 @@ async def save_logistic_regression_model(
         return blob_client.url
 
 
-async def read_logistic_regression_model(
+async def read_k_nearest_neighbors_model(
     experiment_id: str,
-    c: float,
+    n_neighbors: int,
 ) -> Any:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
@@ -160,7 +142,7 @@ async def read_logistic_regression_model(
         raise ValueError("STORAGE_ACCOUNT_NAME is not configured.")
     if not experiments_container_name:
         raise ValueError("EXPERIMENTS_CONTAINER_NAME is not configured.")
-    blob_name = f"{experiment_id}/model_logistic_regression_c{c}.joblib"
+    blob_name = f"{experiment_id}/model_k_nearest_neighbors_{n_neighbors}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name,
     ) as storage_account_model:

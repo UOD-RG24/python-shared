@@ -1,10 +1,12 @@
-import pandas as pd
 import io
 import os
+
+import pandas as pd
+
 from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 
 
-async def save_digital_twins_data(experiment_id: str, dataframe: pd.DataFrame) -> str:
+async def save_digital_twins_label(experiment_id: str, dataframe: pd.DataFrame) -> str:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
     if dataframe.empty:
@@ -22,7 +24,7 @@ async def save_digital_twins_data(experiment_id: str, dataframe: pd.DataFrame) -
         encoding="utf-8",
     )
     csv_buffer.seek(0)
-    blob_name = f"{experiment_id}/dt_data.csv"
+    blob_name = f"{experiment_id}/dt_label.csv"
     async with StorageAccountModel(
         storage_account_name=storage_account_name
     ) as storage_account_model:
@@ -36,7 +38,7 @@ async def save_digital_twins_data(experiment_id: str, dataframe: pd.DataFrame) -
         return blob_client.url
 
 
-async def read_digital_twins_data(
+async def read_digital_twins_label(
     experiment_id: str,
 ) -> pd.DataFrame:
     if not experiment_id:
@@ -47,7 +49,7 @@ async def read_digital_twins_data(
         raise ValueError("STORAGE_ACCOUNT_NAME is not configured.")
     if not experiments_container_name:
         raise ValueError("EXPERIMENTS_CONTAINER_NAME is not configured.")
-    blob_name = f"{experiment_id}/dt_data.csv"
+    blob_name = f"{experiment_id}/dt_label.csv"
     async with StorageAccountModel(
         storage_account_name=storage_account_name,
     ) as storage_account_model:

@@ -1,24 +1,26 @@
-from typing import Any, Literal
 import io
 import os
+from typing import Any
+
 import joblib
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
-from uod_rg24_models.shared.api_request_models import ApiRequestModel
-from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
+from pydantic import BaseModel, ConfigDict, Field
 from sklearn.pipeline import Pipeline
+from uod_rg24_models.shared.api_request_models import ApiRequestModel
+
+from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 from uod_rg24_tools.deployment_tools import (
     get_project_metadata,
 )
 
 
 class TrainModel(BaseModel):
-    kernel: Literal["linear", "rbf", "poly"] = "linear"
-    test_size: float = Field(alias="testSize", default=0.25, gt=0, lt=1)
-    random_state: int = Field(alias="randomState", default=42)
+    var_smoothing: float = Field(alias="varSmoothing", default=1e-9, gt=0)
+    test_size: float = Field(alias="testSize", default=0.25, gt=0, le=1)
+    random_state: int | None = Field(alias="randomState", default=None)
     stratify: bool = True
 
 
-class SupportVectorMachinesRequestModel(ApiRequestModel):
+class GaussianNaiveBayesRequestModel(ApiRequestModel):
     train: TrainModel
 
 
@@ -46,14 +48,16 @@ def get_response_metadata() -> ResponseMetadataModel:
     )
 
 
-class SupportVectorMachinesResponseDataModel(BaseModel):
+class GaussianNaiveBayesResponseDataModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
     model_type: str = Field(
         alias="modelType",
     )
-    kernel: str
+    var_smoothing: float = Field(
+        alias="varSmoothing",
+    )
     training_samples: int = Field(alias="trainingSamples")
     testing_samples: int = Field(
         alias="testingSamples",
@@ -72,10 +76,10 @@ class SupportVectorMachinesResponseDataModel(BaseModel):
     )
 
 
-async def save_svm_model(
+async def save_gaussian_naive_bayes_model(
     experiment_id: str,
+    var_smoothing: float,
     model: Pipeline,
-    kernel: Literal["linear", "rbf", "poly"] = "linear",
 ) -> str:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
@@ -92,7 +96,7 @@ async def save_svm_model(
         compress=3,
     )
     model_buffer.seek(0)
-    blob_name = f"{experiment_id}/model_svm_{kernel}.joblib"
+    blob_name = f"{experiment_id}/model_gaussian_naive_bayes_{var_smoothing}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name
     ) as storage_account_model:
@@ -104,9 +108,9 @@ async def save_svm_model(
         return blob_client.url
 
 
-async def read_svm_model(
+async def read_gaussian_naive_bayes_model(
     experiment_id: str,
-    kernel: Literal["linear", "rbf", "poly"] = "linear",
+    var_smoothing: float,
 ) -> Any:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
@@ -116,7 +120,7 @@ async def read_svm_model(
         raise ValueError("STORAGE_ACCOUNT_NAME is not configured.")
     if not experiments_container_name:
         raise ValueError("EXPERIMENTS_CONTAINER_NAME is not configured.")
-    blob_name = f"{experiment_id}/model_svm_{kernel}.joblib"
+    blob_name = f"{experiment_id}/model_gaussian_naive_bayes_{var_smoothing}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name,
     ) as storage_account_model:

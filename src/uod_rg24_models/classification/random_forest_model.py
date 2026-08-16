@@ -1,76 +1,34 @@
-from typing import Any, Literal
 import io
 import os
+from typing import Any, Literal
+
 import joblib
 from pydantic import BaseModel, ConfigDict, Field
-from uod_rg24_models.shared.api_request_models import ApiRequestModel
-from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 from sklearn.pipeline import Pipeline
+from uod_rg24_models.shared.api_request_models import ApiRequestModel
+
+from src.uod_rg24_models.azure_cloud.storage_account_models import StorageAccountModel
 from uod_rg24_tools.deployment_tools import (
     get_project_metadata,
 )
 
 
 class TrainModel(BaseModel):
-    hidden_layer_sizes: tuple[int, ...] = Field(
-        alias="hiddenLayerSizes",
-        default=(100, 50),
-        min_length=1,
-    )
-    activation: Literal[
-        "identity",
-        "logistic",
-        "tanh",
-        "relu",
-    ] = "relu"
-    solver: Literal[
-        "lbfgs",
-        "sgd",
-        "adam",
-    ] = "adam"
-    alpha: float = Field(
-        default=0.0001,
-        ge=0,
-    )
-    learning_rate_init: float = Field(
-        alias="learningRateInit",
-        default=0.001,
-        gt=0,
-    )
-    max_iter: int = Field(
-        alias="maxIter",
-        default=500,
-        gt=0,
-    )
-    early_stopping: bool = Field(
-        alias="earlyStopping",
-        default=True,
-    )
-    validation_fraction: float = Field(
-        alias="validationFraction",
-        default=0.1,
-        gt=0,
-        lt=1,
-    )
-    n_iter_no_change: int = Field(
-        alias="nIterNoChange",
-        default=20,
-        gt=0,
-    )
-    test_size: float = Field(
-        alias="testSize",
-        default=0.25,
-        gt=0.0,
-        lt=1.0,
-    )
-    random_state: int | None = Field(
-        alias="randomState",
+    n_estimators: int = Field(alias="nEstimators", default=100, gt=0)
+    max_depth: int | None = Field(alias="maxDepth", default=None, gt=0)
+    min_samples_split: int = Field(alias="minSamplesSplit", default=2, gt=2)
+    min_samples_leaf: int = Field(alias="minSamplesLeaf", default=1, gt=0)
+    max_features: Literal["auto", "sqrt", "log2"] | None = Field(
+        alias="maxFeatures",
         default=None,
     )
+    criterion: Literal["gini", "entropy"] = Field(alias="criterion", default="gini")
+    test_size: float = Field(alias="testSize", default=0.25, gt=0, lt=1)
+    random_state: int = Field(alias="randomState", default=42)
     stratify: bool = True
 
 
-class MultiLayerPerceptronRequestModel(ApiRequestModel):
+class RandomForestRequestModel(ApiRequestModel):
     train: TrainModel
 
 
@@ -98,21 +56,21 @@ def get_response_metadata() -> ResponseMetadataModel:
     )
 
 
-class MultiLayerPerceptronResponseDataModel(BaseModel):
+class RandomForestResponseDataModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
     model_type: str = Field(
         alias="modelType",
-        default="Multi-Layer Perceptron",
     )
-    hidden_layer_sizes: list[int] = Field(
-        alias="hiddenLayerSizes",
+    n_estimators: int = Field(alias="nEstimators")
+    criterion: Literal["gini", "entropy"] = Field(alias="criterion")
+    max_depth: int | None = Field(alias="maxDepth")
+    min_samples_split: int = Field(alias="minSamplesSplit")
+    min_samples_leaf: int = Field(alias="minSamplesLeaf")
+    max_features: Literal["auto", "sqrt", "log2"] | None = Field(
+        alias="maxFeatures", default=None
     )
-    activation: str
-    solver: str
-    iterations: int
-    loss: float
     training_samples: int = Field(alias="trainingSamples")
     testing_samples: int = Field(
         alias="testingSamples",
@@ -131,15 +89,13 @@ class MultiLayerPerceptronResponseDataModel(BaseModel):
     )
 
 
-async def save_multi_layer_perceptron_model(
+async def save_random_forest_model(
     experiment_id: str,
-    alpha: float,
     model: Pipeline,
+    n_estimators: int,
 ) -> str:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
-    if alpha is not None and alpha <= 0:
-        raise ValueError("alpha must be greater than 0 if provided.")
     storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
     experiments_container_name = os.getenv("EXPERIMENTS_CONTAINER_NAME")
     if not storage_account_name:
@@ -153,7 +109,7 @@ async def save_multi_layer_perceptron_model(
         compress=3,
     )
     model_buffer.seek(0)
-    blob_name = f"{experiment_id}/model_multi_layer_perceptron_alpha{alpha}.joblib"
+    blob_name = f"{experiment_id}/model_random_forest_{n_estimators}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name
     ) as storage_account_model:
@@ -165,21 +121,19 @@ async def save_multi_layer_perceptron_model(
         return blob_client.url
 
 
-async def read_multi_layer_perceptron_model(
+async def read_random_forest_model(
     experiment_id: str,
-    alpha: float,
+    n_estimators: int,
 ) -> Any:
     if not experiment_id:
         raise ValueError("experiment_id cannot be empty.")
-    if not alpha or alpha <= 0:
-        raise ValueError("max_depth must be a positive integer.")
     storage_account_name = os.getenv("STORAGE_ACCOUNT_NAME")
     experiments_container_name = os.getenv("EXPERIMENTS_CONTAINER_NAME")
     if not storage_account_name:
         raise ValueError("STORAGE_ACCOUNT_NAME is not configured.")
     if not experiments_container_name:
         raise ValueError("EXPERIMENTS_CONTAINER_NAME is not configured.")
-    blob_name = f"{experiment_id}/model_multi_layer_perceptron_alpha{alpha}.joblib"
+    blob_name = f"{experiment_id}/model_random_forest_{n_estimators}.joblib"
     async with StorageAccountModel(
         storage_account_name=storage_account_name,
     ) as storage_account_model:

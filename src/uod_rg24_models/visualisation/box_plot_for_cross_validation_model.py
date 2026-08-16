@@ -1,9 +1,10 @@
 from typing import Annotated, Literal
+
+import numpy as np
 from pydantic import BaseModel, Field
 from sklearn.metrics import (
     multilabel_confusion_matrix,
 )
-import numpy as np
 from uod_rg24_models.shared.api_request_models import ApiRequestModel
 
 
