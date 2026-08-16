@@ -5,13 +5,13 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from uod_rg24.models.pre_processing.pre_processing_shared_models import (
+from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     MetadataModel,
 )
-from uod_rg24.models.pre_processing.tabular_data.standard_scaler_process_models import (
+from uod_rg24.models.preprocessing.tabular.standard_scaler_process_models import (
     StandardScalerStandardizationProcessRequestModel,
 )
-from uod_rg24.models.pre_processing.tabular_data.standardization_models import (
+from uod_rg24.models.preprocessing.tabular.standardization_models import (
     DatasetModel,
     MaxAbsScalerModel,
     MinMaxScalerModel,
