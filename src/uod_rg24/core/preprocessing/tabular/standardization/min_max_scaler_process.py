@@ -3,88 +3,106 @@ import os
 import tempfile
 from pathlib import Path
 from time import perf_counter
-from typing import Any
 
 import pandas as pd
 from azure.storage.blob import BlobClient, BlobServiceClient
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     FileProcessInfoModel,
     ProcessStepModel,
     TemporaryFileInfoModel,
 )
-from uod_rg24.models.preprocessing.tabular.standard_scaler_process_models import (
-    StandardScalerInfoModel,
-    StandardScalerStandardizationProcessRequestModel,
-    StandardScalerStandardizationProcessResponseModel,
+from uod_rg24.models.preprocessing.tabular.min_max_scaler_process_models import (
+    MinMaxScalerInfoModel,
+    MinMaxScalerStandardizationProcessRequestModel,
+    MinMaxScalerStandardizationProcessResponseModel,
 )
 from uod_rg24.models.preprocessing.tabular.standardization_models import (
     DatasetModel,
-    StandardScalerModel,
+    MinMaxScalerModel,
 )
 from uod_rg24.tools.datetime_tools import utc_now
 
 logger = logging.getLogger(__name__)
 
 
-def standard_scaler_process(
+def min_max_scaler_process(
     blob_service_client: BlobServiceClient,
     dataset_blob: DatasetModel,
-    output_blob: StandardScalerModel,
-    standardization_process_request: StandardScalerStandardizationProcessRequestModel,
-) -> StandardScalerStandardizationProcessResponseModel:
+    output_blob: MinMaxScalerModel,
+    standardization_process_request: MinMaxScalerStandardizationProcessRequestModel,
+) -> MinMaxScalerStandardizationProcessResponseModel:
     total_started = perf_counter()
     processing_started_at = utc_now()
     steps: list[ProcessStepModel] = []
-    if dataset_blob.extension is None:
+
+    dataset_extension = dataset_blob.extension
+
+    if dataset_extension is None:
         raise ValueError("Dataset file extension is required.")
-    dataset_blob_path: str = (
+
+    dataset_blob_path = (
         f"{dataset_blob.directory_name}/"
         f"{dataset_blob.file_name}"
-        f".{dataset_blob.extension.lstrip('.')}"
+        f".{dataset_extension.lstrip('.')}"
     )
+
     dataset_blob_client: BlobClient = blob_service_client.get_blob_client(
         container=dataset_blob.azure_container_name,
         blob=dataset_blob_path,
     )
-    extension: str = Path(dataset_blob_path).suffix.lower()
+
+    extension = Path(dataset_blob_path).suffix.lower()
+
     if extension not in {".csv", ".tsv"}:
         raise ValueError(
             f"Unsupported dataset type: {extension}. "
             "Only .csv and .tsv files are supported."
         )
-    separator: str = "\t" if extension == ".tsv" else ","
-    output_blob_path: str = (
+
+    separator = "\t" if extension == ".tsv" else ","
+
+    output_blob_path = (
         f"{output_blob.directory_name}/" f"{output_blob.file_name}" f"{extension}"
     )
+
     output_blob_client: BlobClient = blob_service_client.get_blob_client(
         container=output_blob.azure_container_name,
         blob=output_blob_path,
     )
-    chunk_size: int = standardization_process_request.chunk_size
+
+    chunk_size = standardization_process_request.chunk_size
+
     numeric_columns: list[str] | None = None
+
     rows_processed = 0
     fit_chunks_processed = 0
     transform_chunks_processed = 0
+
     input_size_bytes = 0
     output_size_bytes = 0
-    scaler = StandardScaler(
+
+    scaler = MinMaxScaler(
+        feature_range=standardization_process_request.feature_range,
         copy=standardization_process_request.copy_,
-        with_mean=standardization_process_request.with_mean,
-        with_std=standardization_process_request.with_std,
+        clip=standardization_process_request.clip,
     )
+
     with tempfile.TemporaryDirectory() as temp_dir:
-        input_path: str = os.path.join(
+        input_path = os.path.join(
             temp_dir,
             f"input{extension}",
         )
-        output_path: str = os.path.join(
+
+        output_path = os.path.join(
             temp_dir,
             f"output{extension}",
         )
+
         step_started_at = utc_now()
         step_timer = perf_counter()
+
         logger.info(
             "Downloading dataset. source_blob=%s",
             dataset_blob_path,
@@ -93,18 +111,22 @@ def standard_scaler_process(
         with open(input_path, "wb") as file:
             download_stream = dataset_blob_client.download_blob()
             download_stream.readinto(file)
+
         input_size_bytes = os.path.getsize(input_path)
+
         steps.append(
             ProcessStepModel(
                 step="download",
                 startedAt=step_started_at,
                 completedAt=utc_now(),
                 durationMs=(perf_counter() - step_timer) * 1000,
-                message=(f"Downloaded " f"{input_size_bytes} bytes."),
+                message=f"Downloaded {input_size_bytes} bytes.",
             )
         )
+
         step_started_at = utc_now()
         step_timer = perf_counter()
+
         for chunk in pd.read_csv(
             input_path,
             sep=separator,
@@ -117,145 +139,147 @@ def standard_scaler_process(
                         for column in standardization_process_request.numeric_columns
                         if column not in chunk.columns
                     ]
+
                     if missing_columns:
                         raise ValueError(
-                            "Columns not found in dataset: " f"{missing_columns}"
+                            f"Columns not found in dataset: {missing_columns}"
                         )
+
                     non_numeric_columns = [
                         column
                         for column in standardization_process_request.numeric_columns
                         if not pd.api.types.is_numeric_dtype(chunk[column])
                     ]
+
                     if non_numeric_columns:
                         raise ValueError(
-                            "Columns are not numeric: " f"{non_numeric_columns}"
+                            f"Columns are not numeric: {non_numeric_columns}"
                         )
+
                     numeric_columns = standardization_process_request.numeric_columns
+
                 else:
                     numeric_columns = chunk.select_dtypes(
-                        include="number"
+                        include="number",
                     ).columns.tolist()
+
                 logger.info(
-                    "StandardScaler columns=%s",
+                    "MinMaxScaler columns=%s",
                     numeric_columns,
                 )
+
                 if not numeric_columns:
-                    raise ValueError("Dataset contains no " "numeric columns.")
+                    raise ValueError("Dataset contains no numeric columns.")
+
             scaler.partial_fit(chunk[numeric_columns])
+
             fit_chunks_processed += 1
             rows_processed += len(chunk)
+
+        if numeric_columns is None:
+            raise ValueError("Dataset contains no rows.")
+
         steps.append(
             ProcessStepModel(
-                step="standard_scaler_fit",
+                step="min_max_scaler_fit",
                 startedAt=step_started_at,
                 completedAt=utc_now(),
                 durationMs=(perf_counter() - step_timer) * 1000,
                 message=(
-                    f"Fitted StandardScaler "
-                    f"using {rows_processed} rows "
-                    f"across "
+                    f"Fitted MinMaxScaler using "
+                    f"{rows_processed} rows across "
                     f"{fit_chunks_processed} chunks."
                 ),
             )
         )
+
         step_started_at = utc_now()
         step_timer = perf_counter()
+
         first_chunk = True
+
         for chunk in pd.read_csv(
             input_path,
             sep=separator,
             chunksize=chunk_size,
         ):
             chunk[numeric_columns] = scaler.transform(chunk[numeric_columns])
+
             chunk.to_csv(
                 output_path,
                 sep=separator,
                 index=False,
-                mode=("w" if first_chunk else "a"),
+                mode="w" if first_chunk else "a",
                 header=first_chunk,
             )
+
             first_chunk = False
             transform_chunks_processed += 1
+
         output_size_bytes = os.path.getsize(output_path)
+
         steps.append(
             ProcessStepModel(
-                step="standard_scaler_transform",
+                step="min_max_scaler_transform",
                 startedAt=step_started_at,
                 completedAt=utc_now(),
                 durationMs=(perf_counter() - step_timer) * 1000,
                 message=(
-                    f"Transformed "
-                    f"{rows_processed} rows "
-                    f"across "
-                    f"{transform_chunks_processed} "
-                    f"chunks."
+                    f"Transformed {rows_processed} rows "
+                    f"across {transform_chunks_processed} chunks."
                 ),
             )
         )
+
         step_started_at = utc_now()
         step_timer = perf_counter()
+
         logger.info(
-            "Uploading standardised dataset. " "destination_blob=%s",
+            "Uploading Min-Max scaled dataset. " "destination_blob=%s",
             output_blob_path,
         )
+
         with open(output_path, "rb") as file:
             output_blob_client.upload_blob(
                 file,
                 overwrite=True,
             )
+
         steps.append(
             ProcessStepModel(
                 step="upload",
                 startedAt=step_started_at,
                 completedAt=utc_now(),
                 durationMs=(perf_counter() - step_timer) * 1000,
-                message=(f"Uploaded " f"{output_size_bytes} bytes."),
+                message=f"Uploaded {output_size_bytes} bytes.",
             )
         )
+
         temporary_file_info = TemporaryFileInfoModel(
             temporaryDirectory=temp_dir,
             inputFilePath=input_path,
             outputFilePath=output_path,
         )
-    samples_seen: Any = getattr(
-        scaler,
-        "n_samples_seen_",
-        None,
-    )
-    if hasattr(
-        samples_seen,
-        "tolist",
-    ):
-        samples_seen = samples_seen.tolist()
-    mean = getattr(
-        scaler,
-        "mean_",
-        None,
-    )
-    variance = getattr(
-        scaler,
-        "var_",
-        None,
-    )
-    scale = getattr(
-        scaler,
-        "scale_",
-        None,
-    )
-    scaler_info = StandardScalerInfoModel(
-        numericColumns=numeric_columns or [],
-        numericColumnCount=len(numeric_columns or []),
+
+    scaler_info = MinMaxScalerInfoModel(
+        numericColumns=numeric_columns,
+        numericColumnCount=len(numeric_columns),
         rowsProcessed=rows_processed,
         fitChunksProcessed=fit_chunks_processed,
-        transformChunksProcessed=(transform_chunks_processed),
+        transformChunksProcessed=transform_chunks_processed,
         chunkSize=chunk_size,
-        mean=mean.tolist() if mean is not None else [],
-        variance=variance.tolist() if variance is not None else [],
-        scale=scale.tolist() if scale is not None else [],
-        samplesSeen=samples_seen,
+        featureRange=standardization_process_request.feature_range,
+        minAdjustment=scaler.min_.tolist(),
+        scale=scaler.scale_.tolist(),
+        dataMin=scaler.data_min_.tolist(),
+        dataMax=scaler.data_max_.tolist(),
+        dataRange=scaler.data_range_.tolist(),
+        samplesSeen=int(scaler.n_samples_seen_),
     )
+
     processing_completed_at = utc_now()
-    return StandardScalerStandardizationProcessResponseModel(
+
+    return MinMaxScalerStandardizationProcessResponseModel(
         success=True,
         startedAt=processing_started_at,
         completedAt=processing_completed_at,
@@ -266,7 +290,7 @@ def standard_scaler_process(
             directoryName=dataset_blob.directory_name,
             blobPath=dataset_blob_path,
             fileName=dataset_blob.file_name,
-            extension=dataset_blob.extension,
+            extension=dataset_extension,
             sizeBytes=input_size_bytes,
             sizeMb=(input_size_bytes / 1024 / 1024),
         ),
@@ -276,7 +300,7 @@ def standard_scaler_process(
             directoryName=output_blob.directory_name,
             blobPath=output_blob_path,
             fileName=output_blob.file_name,
-            extension=dataset_blob.extension,
+            extension=dataset_extension,
             sizeBytes=output_size_bytes,
             sizeMb=(output_size_bytes / 1024 / 1024),
         ),

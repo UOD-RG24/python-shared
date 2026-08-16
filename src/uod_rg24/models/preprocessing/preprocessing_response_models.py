@@ -9,6 +9,10 @@ from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     ErrorModel,
     MetadataModel,
 )
+from uod_rg24.models.preprocessing.tabular.min_max_scaler_process_models import (
+    MinMaxScalerStandardizationProcessRequestModel,
+    MinMaxScalerStandardizationProcessResponseModel,
+)
 from uod_rg24.models.preprocessing.tabular.standard_scaler_process_models import (
     StandardScalerStandardizationProcessRequestModel,
     StandardScalerStandardizationProcessResponseModel,
@@ -162,8 +166,8 @@ class TabularDataPreprocessingUsingStandardScalerStandardizationResponseModel(
 
 class TabularDataPreprocessingUsingMinMaxScalerStandardizationResponseModel(
     StandardizationSuccessResponseModel[
-        None,
-        None,
+        MinMaxScalerStandardizationProcessRequestModel,
+        MinMaxScalerStandardizationProcessResponseModel,
         DatasetModel,
         MinMaxScalerModel,
     ]

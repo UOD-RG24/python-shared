@@ -8,6 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     MetadataModel,
 )
+from uod_rg24.models.preprocessing.tabular.min_max_scaler_process_models import (
+    MinMaxScalerStandardizationProcessRequestModel,
+)
 from uod_rg24.models.preprocessing.tabular.standard_scaler_process_models import (
     StandardScalerStandardizationProcessRequestModel,
 )
@@ -74,7 +77,9 @@ class TabularDataPreprocessingUsingStandardScalerStandardizationRequestModel(
 
 
 class TabularDataPreprocessingUsingMinMaxScalerStandardizationRequestModel(
-    StandardizationRequestModel[None, DatasetModel, MinMaxScalerModel]
+    StandardizationRequestModel[
+        MinMaxScalerStandardizationProcessRequestModel, DatasetModel, MinMaxScalerModel
+    ]
 ):
     pass
 
