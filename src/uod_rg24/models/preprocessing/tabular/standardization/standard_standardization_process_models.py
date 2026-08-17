@@ -11,7 +11,7 @@ from uod_rg24.models.preprocessing.preprocessing_shared_models import (
 )
 
 
-class StandardScalerInfoModel(BaseModel):
+class StandardStandardizationInfoModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
@@ -31,7 +31,7 @@ class StandardScalerInfoModel(BaseModel):
     )
 
 
-class StandardScalerStandardizationProcessResponseModel(BaseModel):
+class StandardStandardizationProcessResponseModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
@@ -46,13 +46,15 @@ class StandardScalerStandardizationProcessResponseModel(BaseModel):
     input_file: FileProcessInfoModel = Field(alias="inputFile")
     output_file: FileProcessInfoModel = Field(alias="outputFile")
     temporary_files: TemporaryFileInfoModel = Field(alias="temporaryFiles")
-    scaler: StandardScalerInfoModel
+    standardization_info: StandardStandardizationInfoModel = Field(
+        alias="standardizationInfo",
+    )
     steps: list[ProcessStepModel] = Field(
         default_factory=list[ProcessStepModel],
     )
 
 
-class StandardScalerStandardizationProcessRequestModel(BaseModel):
+class StandardStandardizationProcessRequestModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",

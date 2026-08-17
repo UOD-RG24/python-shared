@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_validator,
+)
 
 from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     FileProcessInfoModel,
@@ -11,7 +16,7 @@ from uod_rg24.models.preprocessing.preprocessing_shared_models import (
 )
 
 
-class MaxAbsScalerInfoModel(BaseModel):
+class MinMaxStandardizationInfoModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
@@ -45,11 +50,29 @@ class MaxAbsScalerInfoModel(BaseModel):
         gt=0,
     )
 
-    max_abs: list[float] = Field(
-        alias="maxAbs",
+    feature_range: tuple[float, float] = Field(
+        alias="featureRange",
     )
 
-    scale: list[float]
+    min_adjustment: list[float] = Field(
+        alias="minAdjustment",
+    )
+
+    scale: list[float] = Field(
+        alias="scale",
+    )
+
+    data_min: list[float] = Field(
+        alias="dataMin",
+    )
+
+    data_max: list[float] = Field(
+        alias="dataMax",
+    )
+
+    data_range: list[float] = Field(
+        alias="dataRange",
+    )
 
     samples_seen: int = Field(
         alias="samplesSeen",
@@ -57,7 +80,7 @@ class MaxAbsScalerInfoModel(BaseModel):
     )
 
 
-class MaxAbsScalerStandardizationProcessRequestModel(BaseModel):
+class MinMaxStandardizationProcessRequestModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",
@@ -73,6 +96,11 @@ class MaxAbsScalerStandardizationProcessRequestModel(BaseModel):
         alias="numericColumns",
     )
 
+    feature_range: tuple[int, int] = Field(
+        default=(0, 1),
+        alias="featureRange",
+    )
+
     copy_: bool = Field(
         default=True,
         alias="copy",
@@ -80,8 +108,19 @@ class MaxAbsScalerStandardizationProcessRequestModel(BaseModel):
 
     clip: bool = False
 
+    @model_validator(mode="after")
+    def validate_feature_range(
+        self,
+    ) -> MinMaxStandardizationProcessRequestModel:
+        minimum, maximum = self.feature_range
 
-class MaxAbsScalerStandardizationProcessResponseModel(BaseModel):
+        if minimum >= maximum:
+            raise ValueError("featureRange minimum must be " "less than maximum.")
+
+        return self
+
+
+class MinMaxStandardizationProcessResponseModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
@@ -113,6 +152,10 @@ class MaxAbsScalerStandardizationProcessResponseModel(BaseModel):
         alias="temporaryFiles",
     )
 
-    scaler: MaxAbsScalerInfoModel
+    standardization_info: MinMaxStandardizationInfoModel = Field(
+        alias="standardizationInfo",
+    )
 
-    steps: list[ProcessStepModel]
+    steps: list[ProcessStepModel] = Field(
+        alias="steps",
+    )

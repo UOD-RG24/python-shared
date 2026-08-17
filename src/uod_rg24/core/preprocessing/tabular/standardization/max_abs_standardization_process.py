@@ -14,14 +14,14 @@ from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     ProcessStepModel,
     TemporaryFileInfoModel,
 )
-from uod_rg24.models.preprocessing.tabular.max_abs_scaler_process_models import (
-    MaxAbsScalerInfoModel,
-    MaxAbsScalerStandardizationProcessRequestModel,
-    MaxAbsScalerStandardizationProcessResponseModel,
+from uod_rg24.models.preprocessing.tabular.standardization.max_abs_standardization_process_models import (
+    MaxAbsStandardizationInfoModel,
+    MaxAbsStandardizationProcessRequestModel,
+    MaxAbsStandardizationProcessResponseModel,
 )
-from uod_rg24.models.preprocessing.tabular.standardization_models import (
+from uod_rg24.models.preprocessing.tabular.standardization.standardization_models import (
     DatasetModel,
-    MaxAbsScalerModel,
+    MaxAbsStandardizationModel,
 )
 from uod_rg24.tools.datetime_tools import utc_now
 
@@ -35,12 +35,12 @@ class MaxAbsScalerPartialFitProtocol(Protocol):
     ) -> object: ...
 
 
-def max_abs_scaler_process(
+def max_abs_standardization_process(
     blob_service_client: BlobServiceClient,
     dataset_blob: DatasetModel,
-    output_blob: MaxAbsScalerModel,
-    standardization_process_request: MaxAbsScalerStandardizationProcessRequestModel,
-) -> MaxAbsScalerStandardizationProcessResponseModel:
+    output_blob: MaxAbsStandardizationModel,
+    standardization_process_request: MaxAbsStandardizationProcessRequestModel,
+) -> MaxAbsStandardizationProcessResponseModel:
     total_started = perf_counter()
     processing_started_at = utc_now()
     steps: list[ProcessStepModel] = []
@@ -276,7 +276,7 @@ def max_abs_scaler_process(
             outputFilePath=output_path,
         )
 
-    scaler_info = MaxAbsScalerInfoModel(
+    scaler_info = MaxAbsStandardizationInfoModel(
         numericColumns=numeric_columns,
         numericColumnCount=len(numeric_columns),
         rowsProcessed=rows_processed,
@@ -290,7 +290,7 @@ def max_abs_scaler_process(
 
     processing_completed_at = utc_now()
 
-    return MaxAbsScalerStandardizationProcessResponseModel(
+    return MaxAbsStandardizationProcessResponseModel(
         success=True,
         startedAt=processing_started_at,
         completedAt=processing_completed_at,
@@ -316,6 +316,6 @@ def max_abs_scaler_process(
             sizeMb=(output_size_bytes / 1024 / 1024),
         ),
         temporaryFiles=temporary_file_info,
-        scaler=scaler_info,
+        standardizationInfo=scaler_info,
         steps=steps,
     )

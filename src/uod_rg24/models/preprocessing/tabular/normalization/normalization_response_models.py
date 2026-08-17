@@ -5,32 +5,17 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from uod_rg24.models.preprocessing.tabular.normalization.l1_normalization_process_models import (
+    L1NormalizationProcessRequestModel,
+    L1NormalizationProcessResponseModel,
+)
+from uod_rg24.models.preprocessing.tabular.normalization.normalization_models import (
+    DatasetModel,
+    L1NormalizationModel,
+)
 from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     ErrorModel,
     MetadataModel,
-)
-from uod_rg24.models.preprocessing.tabular.max_abs_scaler_process_models import (
-    MaxAbsScalerStandardizationProcessRequestModel,
-    MaxAbsScalerStandardizationProcessResponseModel,
-)
-from uod_rg24.models.preprocessing.tabular.min_max_scaler_process_models import (
-    MinMaxScalerStandardizationProcessRequestModel,
-    MinMaxScalerStandardizationProcessResponseModel,
-)
-from uod_rg24.models.preprocessing.tabular.robust_scaler_process_models import (
-    RobustScalerStandardizationProcessRequestModel,
-    RobustScalerStandardizationProcessResponseModel,
-)
-from uod_rg24.models.preprocessing.tabular.standard_scaler_process_models import (
-    StandardScalerStandardizationProcessRequestModel,
-    StandardScalerStandardizationProcessResponseModel,
-)
-from uod_rg24.models.preprocessing.tabular.standardization_models import (
-    DatasetModel,
-    MaxAbsScalerModel,
-    MinMaxScalerModel,
-    RobustScalerModel,
-    StandardScalerModel,
 )
 from uod_rg24.tools import datetime_tools
 
@@ -41,7 +26,7 @@ TOutput = TypeVar("TOutput")
 TError = TypeVar("TError")
 
 
-class StandardizationResponseModel(
+class NormalizationResponseModel(
     BaseModel,
     Generic[TProcessRequest, TProcessResponse, TInput, TOutput, TError],
 ):
@@ -110,13 +95,13 @@ class StandardizationResponseModel(
         default=None,
         description="Optional additional response metadata.",
     )
-    standardization_process_request: TProcessRequest = Field(
-        alias="standardizationProcessRequest",
-        description="Optional additional details specific to the standardization request.",
+    normalization_process_request: TProcessRequest = Field(
+        alias="normalizationProcessRequest",
+        description="Optional additional details specific to the normalization request.",
     )
-    standardization_process_response: TProcessResponse = Field(
-        alias="standardizationProcessResponse",
-        description="Optional detailed result of the standardization operation.",
+    normalization_process_response: TProcessResponse = Field(
+        alias="normalizationProcessResponse",
+        description="Optional detailed result of the normalization operation.",
     )
     input_blob: TInput = Field(
         alias="inputBlob",
@@ -124,12 +109,12 @@ class StandardizationResponseModel(
     )
     output_blob: TOutput = Field(
         alias="outputBlob",
-        description="Configuration and Azure Blob information required for preprocessing.",
+        description="Configuration and Azure Blob information for the normalized output.",
     )
 
 
-class StandardizationSuccessResponseModel(
-    StandardizationResponseModel[
+class NormalizationSuccessResponseModel(
+    NormalizationResponseModel[
         TProcessRequest,
         TProcessResponse,
         TInput,
@@ -139,15 +124,15 @@ class StandardizationSuccessResponseModel(
     Generic[TProcessRequest, TProcessResponse, TInput, TOutput],
 ):
     success: bool = True
-    standardization_process_request: TProcessRequest
-    standardization_process_response: TProcessResponse
+    normalization_process_request: TProcessRequest
+    normalization_process_response: TProcessResponse
     input_blob: TInput
     output_blob: TOutput
     error: None = None
 
 
-class StandardizationErrorResponseModel(
-    StandardizationResponseModel[
+class NormalizationErrorResponseModel(
+    NormalizationResponseModel[
         None,
         None,
         None,
@@ -156,51 +141,18 @@ class StandardizationErrorResponseModel(
     ],
 ):
     success: bool = False
-    standardization_process_request: None = None
-    standardization_process_response: None = None
+    normalization_process_request: None = None
+    normalization_process_response: None = None
     input_blob: None = None
     output_blob: None = None
 
 
-class TabularDataPreprocessingUsingStandardScalerStandardizationResponseModel(
-    StandardizationSuccessResponseModel[
-        StandardScalerStandardizationProcessRequestModel,
-        StandardScalerStandardizationProcessResponseModel,
+class TabularDataPreprocessingUsingL1NormalizationResponseModel(
+    NormalizationSuccessResponseModel[
+        L1NormalizationProcessRequestModel,
+        L1NormalizationProcessResponseModel,
         DatasetModel,
-        StandardScalerModel,
-    ]
-):
-    pass
-
-
-class TabularDataPreprocessingUsingMinMaxScalerStandardizationResponseModel(
-    StandardizationSuccessResponseModel[
-        MinMaxScalerStandardizationProcessRequestModel,
-        MinMaxScalerStandardizationProcessResponseModel,
-        DatasetModel,
-        MinMaxScalerModel,
-    ]
-):
-    pass
-
-
-class TabularDataPreprocessingUsingMaxAbsScalerStandardizationResponseModel(
-    StandardizationSuccessResponseModel[
-        MaxAbsScalerStandardizationProcessRequestModel,
-        MaxAbsScalerStandardizationProcessResponseModel,
-        DatasetModel,
-        MaxAbsScalerModel,
-    ]
-):
-    pass
-
-
-class TabularDataPreprocessingUsingRobustScalerStandardizationResponseModel(
-    StandardizationSuccessResponseModel[
-        RobustScalerStandardizationProcessRequestModel,
-        RobustScalerStandardizationProcessResponseModel,
-        DatasetModel,
-        RobustScalerModel,
+        L1NormalizationModel,
     ]
 ):
     pass

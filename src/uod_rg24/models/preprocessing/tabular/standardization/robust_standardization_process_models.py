@@ -1,13 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Self
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    model_validator,
-)
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     FileProcessInfoModel,
@@ -16,7 +12,7 @@ from uod_rg24.models.preprocessing.preprocessing_shared_models import (
 )
 
 
-class MinMaxScalerInfoModel(BaseModel):
+class RobustStandardizationInfoModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
@@ -50,35 +46,33 @@ class MinMaxScalerInfoModel(BaseModel):
         gt=0,
     )
 
-    feature_range: tuple[float, float] = Field(
-        alias="featureRange",
+    with_centering: bool = Field(
+        alias="withCentering",
     )
 
-    min_adjustment: list[float] = Field(
-        alias="minAdjustment",
+    with_scaling: bool = Field(
+        alias="withScaling",
     )
 
-    scale: list[float]
-
-    data_min: list[float] = Field(
-        alias="dataMin",
+    quantile_range: tuple[float, float] = Field(
+        alias="quantileRange",
     )
 
-    data_max: list[float] = Field(
-        alias="dataMax",
+    unit_variance: bool = Field(
+        alias="unitVariance",
     )
 
-    data_range: list[float] = Field(
-        alias="dataRange",
-    )
+    center: list[float] | None
 
-    samples_seen: int = Field(
-        alias="samplesSeen",
+    scale: list[float] | None
+
+    n_features_in: int = Field(
+        alias="nFeaturesIn",
         ge=0,
     )
 
 
-class MinMaxScalerStandardizationProcessRequestModel(BaseModel):
+class RobustStandardizationProcessRequestModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",
@@ -94,9 +88,19 @@ class MinMaxScalerStandardizationProcessRequestModel(BaseModel):
         alias="numericColumns",
     )
 
-    feature_range: tuple[int, int] = Field(
-        default=(0, 1),
-        alias="featureRange",
+    with_centering: bool = Field(
+        default=True,
+        alias="withCentering",
+    )
+
+    with_scaling: bool = Field(
+        default=True,
+        alias="withScaling",
+    )
+
+    quantile_range: tuple[float, float] = Field(
+        default=(25.0, 75.0),
+        alias="quantileRange",
     )
 
     copy_: bool = Field(
@@ -104,21 +108,24 @@ class MinMaxScalerStandardizationProcessRequestModel(BaseModel):
         alias="copy",
     )
 
-    clip: bool = False
+    unit_variance: bool = Field(
+        default=False,
+        alias="unitVariance",
+    )
 
     @model_validator(mode="after")
-    def validate_feature_range(
-        self,
-    ) -> MinMaxScalerStandardizationProcessRequestModel:
-        minimum, maximum = self.feature_range
+    def validate_quantile_range(self) -> Self:
+        q_min, q_max = self.quantile_range
 
-        if minimum >= maximum:
-            raise ValueError("featureRange minimum must be " "less than maximum.")
+        if not 0.0 < q_min < q_max < 100.0:
+            raise ValueError(
+                "quantileRange must satisfy " "0.0 < q_min < q_max < 100.0."
+            )
 
         return self
 
 
-class MinMaxScalerStandardizationProcessResponseModel(BaseModel):
+class RobustStandardizationProcessResponseModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
@@ -150,6 +157,10 @@ class MinMaxScalerStandardizationProcessResponseModel(BaseModel):
         alias="temporaryFiles",
     )
 
-    scaler: MinMaxScalerInfoModel
+    standardization_info: RobustStandardizationInfoModel = Field(
+        alias="standardizationInfo",
+    )
 
-    steps: list[ProcessStepModel]
+    steps: list[ProcessStepModel] = Field(
+        alias="steps",
+    )

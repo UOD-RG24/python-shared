@@ -11,31 +11,31 @@ from azure.storage.blob import BlobClient, BlobServiceClient
 from numpy.typing import NDArray
 from sklearn.preprocessing import RobustScaler
 
+from uod_rg24.models.preprocessing.tabular.standardization.robust_standardization_process_models import (
+    RobustStandardizationInfoModel,
+    RobustStandardizationProcessRequestModel,
+    RobustStandardizationProcessResponseModel,
+)
+from uod_rg24.models.preprocessing.tabular.standardization.standardization_models import (
+    DatasetModel,
+    RobustStandardizationModel,
+)
 from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     FileProcessInfoModel,
     ProcessStepModel,
     TemporaryFileInfoModel,
-)
-from uod_rg24.models.preprocessing.tabular.robust_scaler_process_models import (
-    RobustScalerInfoModel,
-    RobustScalerStandardizationProcessRequestModel,
-    RobustScalerStandardizationProcessResponseModel,
-)
-from uod_rg24.models.preprocessing.tabular.standardization_models import (
-    DatasetModel,
-    RobustScalerModel,
 )
 from uod_rg24.tools.datetime_tools import utc_now
 
 logger = logging.getLogger(__name__)
 
 
-def robust_scaler_process(
+def robust_standardization_process(
     blob_service_client: BlobServiceClient,
     dataset_blob: DatasetModel,
-    output_blob: RobustScalerModel,
-    standardization_process_request: RobustScalerStandardizationProcessRequestModel,
-) -> RobustScalerStandardizationProcessResponseModel:
+    output_blob: RobustStandardizationModel,
+    standardization_process_request: RobustStandardizationProcessRequestModel,
+) -> RobustStandardizationProcessResponseModel:
     total_started = perf_counter()
     processing_started_at = utc_now()
 
@@ -386,7 +386,7 @@ def robust_scaler_process(
         scale_values.tolist() if scale_values is not None else None
     )
 
-    scaler_info = RobustScalerInfoModel(
+    scaler_info = RobustStandardizationInfoModel(
         numericColumns=numeric_columns,
         numericColumnCount=len(numeric_columns),
         rowsProcessed=rows_processed,
@@ -404,7 +404,7 @@ def robust_scaler_process(
 
     processing_completed_at = utc_now()
 
-    return RobustScalerStandardizationProcessResponseModel(
+    return RobustStandardizationProcessResponseModel(
         success=True,
         startedAt=processing_started_at,
         completedAt=processing_completed_at,
@@ -430,6 +430,6 @@ def robust_scaler_process(
             sizeMb=(output_size_bytes / 1024 / 1024),
         ),
         temporaryFiles=temporary_file_info,
-        scaler=scaler_info,
+        standardizationInfo=scaler_info,
         steps=steps,
     )
