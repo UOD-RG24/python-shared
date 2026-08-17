@@ -5,6 +5,10 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from uod_rg24.models.preprocessing.preprocessing_shared_models import (
+    ErrorModel,
+    MetadataModel,
+)
 from uod_rg24.models.preprocessing.tabular.standardization.max_abs_standardization_process_models import (
     MaxAbsStandardizationProcessRequestModel,
     MaxAbsStandardizationProcessResponseModel,
@@ -22,15 +26,8 @@ from uod_rg24.models.preprocessing.tabular.standardization.standard_standardizat
     StandardStandardizationProcessResponseModel,
 )
 from uod_rg24.models.preprocessing.tabular.standardization.standardization_models import (
-    DatasetModel,
-    MaxAbsStandardizationModel,
-    MinMaxStandardizationModel,
-    RobustStandardizationModel,
-    StandardStandardizationModel,
-)
-from uod_rg24.models.preprocessing.preprocessing_shared_models import (
-    ErrorModel,
-    MetadataModel,
+    InputModel,
+    OutputModel,
 )
 from uod_rg24.tools import datetime_tools
 
@@ -166,8 +163,8 @@ class StandardStandardizationResponseModel(
     StandardizationSuccessResponseModel[
         StandardStandardizationProcessRequestModel,
         StandardStandardizationProcessResponseModel,
-        DatasetModel,
-        StandardStandardizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass
@@ -177,8 +174,8 @@ class MinMaxStandardizationResponseModel(
     StandardizationSuccessResponseModel[
         MinMaxStandardizationProcessRequestModel,
         MinMaxStandardizationProcessResponseModel,
-        DatasetModel,
-        MinMaxStandardizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass
@@ -188,8 +185,8 @@ class MaxAbsStandardizationResponseModel(
     StandardizationSuccessResponseModel[
         MaxAbsStandardizationProcessRequestModel,
         MaxAbsStandardizationProcessResponseModel,
-        DatasetModel,
-        MaxAbsStandardizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass
@@ -199,8 +196,8 @@ class RobustStandardizationResponseModel(
     StandardizationSuccessResponseModel[
         RobustStandardizationProcessRequestModel,
         RobustStandardizationProcessResponseModel,
-        DatasetModel,
-        RobustStandardizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass

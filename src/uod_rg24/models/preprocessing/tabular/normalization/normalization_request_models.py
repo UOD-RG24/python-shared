@@ -5,15 +5,15 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from uod_rg24.models.preprocessing.preprocessing_shared_models import (
+    MetadataModel,
+)
 from uod_rg24.models.preprocessing.tabular.normalization.l1_normalization_process_models import (
     L1NormalizationProcessRequestModel,
 )
 from uod_rg24.models.preprocessing.tabular.normalization.normalization_models import (
-    DatasetModel,
-    L1NormalizationModel,
-)
-from uod_rg24.models.preprocessing.preprocessing_shared_models import (
-    MetadataModel,
+    InputModel,
+    OutputModel,
 )
 from uod_rg24.tools import datetime_tools
 
@@ -64,8 +64,8 @@ class NormalizationRequestModel(BaseModel, Generic[TProcessRequest, TInput, TOut
 class TabularDataPreprocessingUsingL1NormalizationRequestModel(
     NormalizationRequestModel[
         L1NormalizationProcessRequestModel,
-        DatasetModel,
-        L1NormalizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass

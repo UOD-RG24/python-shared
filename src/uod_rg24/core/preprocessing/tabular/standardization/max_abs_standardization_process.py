@@ -20,8 +20,8 @@ from uod_rg24.models.preprocessing.tabular.standardization.max_abs_standardizati
     MaxAbsStandardizationProcessResponseModel,
 )
 from uod_rg24.models.preprocessing.tabular.standardization.standardization_models import (
-    DatasetModel,
-    MaxAbsStandardizationModel,
+    InputModel,
+    OutputModel,
 )
 from uod_rg24.tools.datetime_tools import utc_now
 
@@ -37,31 +37,31 @@ class MaxAbsScalerPartialFitProtocol(Protocol):
 
 def max_abs_standardization_process(
     blob_service_client: BlobServiceClient,
-    dataset_blob: DatasetModel,
-    output_blob: MaxAbsStandardizationModel,
+    input_blob: InputModel,
+    output_blob: OutputModel,
     standardization_process_request: MaxAbsStandardizationProcessRequestModel,
 ) -> MaxAbsStandardizationProcessResponseModel:
     total_started = perf_counter()
     processing_started_at = utc_now()
     steps: list[ProcessStepModel] = []
 
-    dataset_extension = dataset_blob.extension
+    input_blob_extension = input_blob.extension
 
-    if dataset_extension is None:
-        raise ValueError("Dataset file extension is required.")
+    if input_blob_extension is None:
+        raise ValueError("Input blob file extension is required.")
 
-    dataset_blob_path = (
-        f"{dataset_blob.directory_name}/"
-        f"{dataset_blob.file_name}"
-        f".{dataset_extension.lstrip('.')}"
+    input_blob_path = (
+        f"{input_blob.directory_name}/"
+        f"{input_blob.file_name}"
+        f".{input_blob_extension.lstrip('.')}"
     )
 
     dataset_blob_client: BlobClient = blob_service_client.get_blob_client(
-        container=dataset_blob.azure_container_name,
-        blob=dataset_blob_path,
+        container=input_blob.azure_container_name,
+        blob=input_blob_path,
     )
 
-    extension = Path(dataset_blob_path).suffix.lower()
+    extension = Path(input_blob_path).suffix.lower()
 
     if extension not in {".csv", ".tsv"}:
         raise ValueError(
@@ -116,7 +116,7 @@ def max_abs_standardization_process(
 
         logger.info(
             "Downloading dataset. source_blob=%s",
-            dataset_blob_path,
+            input_blob_path,
         )
 
         with open(input_path, "wb") as file:
@@ -296,12 +296,12 @@ def max_abs_standardization_process(
         completedAt=processing_completed_at,
         totalDurationMs=(perf_counter() - total_started) * 1000,
         inputFile=FileProcessInfoModel(
-            azureStorageAccountName=dataset_blob.azure_storage_account_name,
-            azureContainerName=dataset_blob.azure_container_name,
-            directoryName=dataset_blob.directory_name,
-            blobPath=dataset_blob_path,
-            fileName=dataset_blob.file_name,
-            extension=dataset_extension,
+            azureStorageAccountName=input_blob.azure_storage_account_name,
+            azureContainerName=input_blob.azure_container_name,
+            directoryName=input_blob.directory_name,
+            blobPath=input_blob_path,
+            fileName=input_blob.file_name,
+            extension=input_blob_extension,
             sizeBytes=input_size_bytes,
             sizeMb=(input_size_bytes / 1024 / 1024),
         ),
@@ -311,7 +311,7 @@ def max_abs_standardization_process(
             directoryName=output_blob.directory_name,
             blobPath=output_blob_path,
             fileName=output_blob.file_name,
-            extension=dataset_extension,
+            extension=input_blob_extension,
             sizeBytes=output_size_bytes,
             sizeMb=(output_size_bytes / 1024 / 1024),
         ),

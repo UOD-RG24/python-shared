@@ -1,21 +1,9 @@
 from uod_rg24.models.azure_cloud.storage_account_models import BlobBaseModel
 
 
-class DatasetModel(BlobBaseModel):
+class InputModel(BlobBaseModel):
     pass
 
 
-class StandardStandardizationModel(BlobBaseModel):
-    pass
-
-
-class MinMaxStandardizationModel(BlobBaseModel):
-    pass
-
-
-class MaxAbsStandardizationModel(BlobBaseModel):
-    pass
-
-
-class RobustStandardizationModel(BlobBaseModel):
+class OutputModel(BlobBaseModel):
     pass

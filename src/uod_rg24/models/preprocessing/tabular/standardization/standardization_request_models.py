@@ -5,6 +5,9 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from uod_rg24.models.preprocessing.preprocessing_shared_models import (
+    MetadataModel,
+)
 from uod_rg24.models.preprocessing.tabular.standardization.max_abs_standardization_process_models import (
     MaxAbsStandardizationProcessRequestModel,
 )
@@ -18,14 +21,8 @@ from uod_rg24.models.preprocessing.tabular.standardization.standard_standardizat
     StandardStandardizationProcessRequestModel,
 )
 from uod_rg24.models.preprocessing.tabular.standardization.standardization_models import (
-    DatasetModel,
-    MaxAbsStandardizationModel,
-    MinMaxStandardizationModel,
-    RobustStandardizationModel,
-    StandardStandardizationModel,
-)
-from uod_rg24.models.preprocessing.preprocessing_shared_models import (
-    MetadataModel,
+    InputModel,
+    OutputModel,
 )
 from uod_rg24.tools import datetime_tools
 
@@ -76,8 +73,8 @@ class StandardizationRequestModel(BaseModel, Generic[TProcessRequest, TInput, TO
 class StandardStandardizationRequestModel(
     StandardizationRequestModel[
         StandardStandardizationProcessRequestModel,
-        DatasetModel,
-        StandardStandardizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass
@@ -86,8 +83,8 @@ class StandardStandardizationRequestModel(
 class MinMaxStandardizationRequestModel(
     StandardizationRequestModel[
         MinMaxStandardizationProcessRequestModel,
-        DatasetModel,
-        MinMaxStandardizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass
@@ -96,8 +93,8 @@ class MinMaxStandardizationRequestModel(
 class MaxAbsStandardizationRequestModel(
     StandardizationRequestModel[
         MaxAbsStandardizationProcessRequestModel,
-        DatasetModel,
-        MaxAbsStandardizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass
@@ -106,8 +103,8 @@ class MaxAbsStandardizationRequestModel(
 class RobustStandardizationRequestModel(
     StandardizationRequestModel[
         RobustStandardizationProcessRequestModel,
-        DatasetModel,
-        RobustStandardizationModel,
+        InputModel,
+        OutputModel,
     ]
 ):
     pass

@@ -22,8 +22,8 @@ from uod_rg24.models.preprocessing.tabular.normalization.l1_normalization_proces
     L1NormalizationProcessResponseModel,
 )
 from uod_rg24.models.preprocessing.tabular.normalization.normalization_models import (
-    DatasetModel,
-    L1NormalizationModel,
+    InputModel,
+    OutputModel,
 )
 from uod_rg24.tools.datetime_tools import utc_now
 
@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 def l1_normalization_process(
     blob_service_client: BlobServiceClient,
-    dataset_blob: DatasetModel,
-    output_blob: L1NormalizationModel,
+    input_blob: InputModel,
+    output_blob: OutputModel,
     normalization_process_request: L1NormalizationProcessRequestModel,
 ) -> L1NormalizationProcessResponseModel:
     total_started = perf_counter()
@@ -41,29 +41,29 @@ def l1_normalization_process(
 
     steps: list[ProcessStepModel] = []
 
-    dataset_extension = dataset_blob.extension
+    input_blob_extension = input_blob.extension
 
-    if dataset_extension is None:
-        raise ValueError("Dataset file extension is required.")
+    if input_blob_extension is None:
+        raise ValueError("Input file extension is required.")
 
-    dataset_extension = dataset_extension.lstrip(".")
+    input_blob_extension = input_blob_extension.lstrip(".")
 
-    dataset_blob_path = (
-        f"{dataset_blob.directory_name}/"
-        f"{dataset_blob.file_name}."
-        f"{dataset_extension}"
+    input_blob_path = (
+        f"{input_blob.directory_name}/"
+        f"{input_blob.file_name}."
+        f"{input_blob_extension}"
     )
 
-    dataset_blob_client: BlobClient = blob_service_client.get_blob_client(
-        container=dataset_blob.azure_container_name,
-        blob=dataset_blob_path,
+    input_blob_client: BlobClient = blob_service_client.get_blob_client(
+        container=input_blob.azure_container_name,
+        blob=input_blob_path,
     )
 
-    extension = Path(dataset_blob_path).suffix.lower()
+    extension = Path(input_blob_path).suffix.lower()
 
     if extension not in {".csv", ".tsv"}:
         raise ValueError(
-            f"Unsupported dataset type: {extension}. "
+            f"Unsupported input type: {extension}. "
             "Only .csv and .tsv files are supported."
         )
 
@@ -109,11 +109,11 @@ def l1_normalization_process(
 
         logger.info(
             "Downloading dataset. source_blob=%s",
-            dataset_blob_path,
+            input_blob_path,
         )
 
         with open(input_path, "wb") as file:
-            download_stream = dataset_blob_client.download_blob()
+            download_stream = input_blob_client.download_blob()
             download_stream.readinto(file)
 
         input_size_bytes = os.path.getsize(input_path)
@@ -267,12 +267,12 @@ def l1_normalization_process(
         completedAt=processing_completed_at,
         totalDurationMs=(perf_counter() - total_started) * 1000,
         inputFile=FileProcessInfoModel(
-            azureStorageAccountName=dataset_blob.azure_storage_account_name,
-            azureContainerName=dataset_blob.azure_container_name,
-            directoryName=dataset_blob.directory_name,
-            blobPath=dataset_blob_path,
-            fileName=dataset_blob.file_name,
-            extension=dataset_extension,
+            azureStorageAccountName=input_blob.azure_storage_account_name,
+            azureContainerName=input_blob.azure_container_name,
+            directoryName=input_blob.directory_name,
+            blobPath=input_blob_path,
+            fileName=input_blob.file_name,
+            extension=input_blob_extension,
             sizeBytes=input_size_bytes,
             sizeMb=(input_size_bytes / 1024 / 1024),
         ),
@@ -282,7 +282,7 @@ def l1_normalization_process(
             directoryName=output_blob.directory_name,
             blobPath=output_blob_path,
             fileName=output_blob.file_name,
-            extension=dataset_extension,
+            extension=input_blob_extension,
             sizeBytes=output_size_bytes,
             sizeMb=(output_size_bytes / 1024 / 1024),
         ),

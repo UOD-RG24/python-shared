@@ -1,9 +1,9 @@
 from uod_rg24.models.azure_cloud.storage_account_models import BlobBaseModel
 
 
-class DatasetModel(BlobBaseModel):
+class InputModel(BlobBaseModel):
     pass
 
 
-class L1NormalizationModel(BlobBaseModel):
+class OutputModel(BlobBaseModel):
     pass
