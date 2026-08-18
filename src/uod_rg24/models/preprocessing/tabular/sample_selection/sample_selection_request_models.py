@@ -8,6 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     MetadataModel,
 )
+from uod_rg24.models.preprocessing.tabular.sample_selection.retain_common_samples_across_layers_process_models import (
+    RetainCommonSamplesAcrossLayersProcessRequestModel,
+)
 from uod_rg24.models.preprocessing.tabular.sample_selection.retain_complete_samples_process_models import (
     RetainCompleteSamplesProcessRequestModel,
 )
@@ -64,6 +67,16 @@ class SampleSelectionRequestModel(BaseModel, Generic[TProcessRequest, TInput, TO
 class RetainCompleteSamplesRequestModel(
     SampleSelectionRequestModel[
         RetainCompleteSamplesProcessRequestModel,
+        InputModel,
+        OutputModel,
+    ]
+):
+    pass
+
+
+class RetainCommonSamplesAcrossLayersRequestModel(
+    SampleSelectionRequestModel[
+        RetainCommonSamplesAcrossLayersProcessRequestModel,
         InputModel,
         OutputModel,
     ]

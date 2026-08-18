@@ -9,6 +9,10 @@ from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     ErrorModel,
     MetadataModel,
 )
+from uod_rg24.models.preprocessing.tabular.sample_selection.retain_common_samples_across_layers_process_models import (
+    RetainCommonSamplesAcrossLayersProcessRequestModel,
+    RetainCommonSamplesAcrossLayersProcessResponseModel,
+)
 from uod_rg24.models.preprocessing.tabular.sample_selection.retain_complete_samples_process_models import (
     RetainCompleteSamplesProcessRequestModel,
     RetainCompleteSamplesProcessResponseModel,
@@ -151,6 +155,17 @@ class RetainCompleteSamplesResponseModel(
     SampleSelectionSuccessResponseModel[
         RetainCompleteSamplesProcessRequestModel,
         RetainCompleteSamplesProcessResponseModel,
+        InputModel,
+        OutputModel,
+    ]
+):
+    pass
+
+
+class RetainCommonSamplesAcrossLayersResponseModel(
+    SampleSelectionSuccessResponseModel[
+        RetainCommonSamplesAcrossLayersProcessRequestModel,
+        RetainCommonSamplesAcrossLayersProcessResponseModel,
         InputModel,
         OutputModel,
     ]
