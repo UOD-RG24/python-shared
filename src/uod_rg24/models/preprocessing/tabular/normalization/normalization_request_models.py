@@ -11,6 +11,12 @@ from uod_rg24.models.preprocessing.preprocessing_shared_models import (
 from uod_rg24.models.preprocessing.tabular.normalization.l1_normalization_process_models import (
     L1NormalizationProcessRequestModel,
 )
+from uod_rg24.models.preprocessing.tabular.normalization.l2_normalization_process_models import (
+    L2NormalizationProcessRequestModel,
+)
+from uod_rg24.models.preprocessing.tabular.normalization.max_normalization_process_models import (
+    MaxNormalizationProcessRequestModel,
+)
 from uod_rg24.models.preprocessing.tabular.normalization.normalization_models import (
     InputModel,
     OutputModel,
@@ -61,9 +67,29 @@ class NormalizationRequestModel(BaseModel, Generic[TProcessRequest, TInput, TOut
     )
 
 
-class TabularDataPreprocessingUsingL1NormalizationRequestModel(
+class L1NormalizationRequestModel(
     NormalizationRequestModel[
         L1NormalizationProcessRequestModel,
+        InputModel,
+        OutputModel,
+    ]
+):
+    pass
+
+
+class L2NormalizationRequestModel(
+    NormalizationRequestModel[
+        L2NormalizationProcessRequestModel,
+        InputModel,
+        OutputModel,
+    ]
+):
+    pass
+
+
+class MaxNormalizationRequestModel(
+    NormalizationRequestModel[
+        MaxNormalizationProcessRequestModel,
         InputModel,
         OutputModel,
     ]

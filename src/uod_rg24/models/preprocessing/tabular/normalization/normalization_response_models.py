@@ -13,6 +13,14 @@ from uod_rg24.models.preprocessing.tabular.normalization.l1_normalization_proces
     L1NormalizationProcessRequestModel,
     L1NormalizationProcessResponseModel,
 )
+from uod_rg24.models.preprocessing.tabular.normalization.l2_normalization_process_models import (
+    L2NormalizationProcessRequestModel,
+    L2NormalizationProcessResponseModel,
+)
+from uod_rg24.models.preprocessing.tabular.normalization.max_normalization_process_models import (
+    MaxNormalizationProcessRequestModel,
+    MaxNormalizationProcessResponseModel,
+)
 from uod_rg24.models.preprocessing.tabular.normalization.normalization_models import (
     InputModel,
     OutputModel,
@@ -147,10 +155,32 @@ class NormalizationErrorResponseModel(
     output_blob: None = None
 
 
-class TabularDataPreprocessingUsingL1NormalizationResponseModel(
+class L1NormalizationResponseModel(
     NormalizationSuccessResponseModel[
         L1NormalizationProcessRequestModel,
         L1NormalizationProcessResponseModel,
+        InputModel,
+        OutputModel,
+    ]
+):
+    pass
+
+
+class L2NormalizationResponseModel(
+    NormalizationSuccessResponseModel[
+        L2NormalizationProcessRequestModel,
+        L2NormalizationProcessResponseModel,
+        InputModel,
+        OutputModel,
+    ]
+):
+    pass
+
+
+class MaxNormalizationResponseModel(
+    NormalizationSuccessResponseModel[
+        MaxNormalizationProcessRequestModel,
+        MaxNormalizationProcessResponseModel,
         InputModel,
         OutputModel,
     ]

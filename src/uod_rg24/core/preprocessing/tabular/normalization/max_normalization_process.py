@@ -16,10 +16,10 @@ from uod_rg24.models.preprocessing.preprocessing_shared_models import (
     ProcessStepModel,
     TemporaryFileInfoModel,
 )
-from uod_rg24.models.preprocessing.tabular.normalization.l1_normalization_process_models import (
-    L1NormalizationInfoModel,
-    L1NormalizationProcessRequestModel,
-    L1NormalizationProcessResponseModel,
+from uod_rg24.models.preprocessing.tabular.normalization.max_normalization_process_models import (
+    MaxNormalizationInfoModel,
+    MaxNormalizationProcessRequestModel,
+    MaxNormalizationProcessResponseModel,
 )
 from uod_rg24.models.preprocessing.tabular.normalization.normalization_models import (
     InputModel,
@@ -30,12 +30,12 @@ from uod_rg24.tools.datetime_tools import utc_now
 logger = logging.getLogger(__name__)
 
 
-def l1_normalization_process(
+def max_normalization_process(
     blob_service_client: BlobServiceClient,
     input_blob: InputModel,
     output_blob: OutputModel,
-    normalization_process_request: L1NormalizationProcessRequestModel,
-) -> L1NormalizationProcessResponseModel:
+    normalization_process_request: MaxNormalizationProcessRequestModel,
+) -> MaxNormalizationProcessResponseModel:
     total_started = perf_counter()
     processing_started_at = utc_now()
 
@@ -78,7 +78,7 @@ def l1_normalization_process(
         blob=output_blob_path,
     )
 
-    chunk_size = normalization_process_request.chunk_size
+    chunk_size: int = normalization_process_request.chunk_size
 
     numeric_columns: list[str] | None = None
 
@@ -89,7 +89,7 @@ def l1_normalization_process(
     output_size_bytes = 0
 
     normalizer = Normalizer(
-        norm="l1",
+        norm="max",
         copy=normalization_process_request.copy_,
     )
 
@@ -177,7 +177,7 @@ def l1_normalization_process(
                     raise ValueError("Dataset contains no numeric columns.")
 
                 logger.info(
-                    "L1 normalization columns=%s",
+                    "Max normalization columns=%s",
                     numeric_columns,
                 )
 
@@ -187,9 +187,10 @@ def l1_normalization_process(
 
             if columns_with_nan:
                 raise ValueError(
-                    "L1 normalization cannot process missing values. "
+                    "Max normalization cannot process missing values. "
                     f"Columns containing NaN: {columns_with_nan}. "
-                    "Apply missing-value preprocessing before L1 normalization."
+                    "Apply missing-value preprocessing before "
+                    "Max normalization."
                 )
 
             normalized_values: NDArray[np.float64] = cast(
@@ -220,12 +221,12 @@ def l1_normalization_process(
 
         steps.append(
             ProcessStepModel(
-                step="l1_normalization",
+                step="max_normalization",
                 startedAt=step_started_at,
                 completedAt=utc_now(),
                 durationMs=(perf_counter() - step_timer) * 1000,
                 message=(
-                    f"L1-normalized {rows_processed} rows across "
+                    f"Max-normalized {rows_processed} rows across "
                     f"{transform_chunks_processed} chunks."
                 ),
             )
@@ -235,7 +236,7 @@ def l1_normalization_process(
         step_timer = perf_counter()
 
         logger.info(
-            "Uploading L1-normalized dataset. destination_blob=%s",
+            "Uploading Max-normalized dataset. destination_blob=%s",
             output_blob_path,
         )
 
@@ -261,8 +262,8 @@ def l1_normalization_process(
             outputFilePath=output_path,
         )
 
-    normalization_info = L1NormalizationInfoModel(
-        norm="l1",
+    normalization_info = MaxNormalizationInfoModel(
+        norm="max",
         numericColumns=numeric_columns,
         numericColumnCount=len(numeric_columns),
         rowsProcessed=rows_processed,
@@ -272,7 +273,7 @@ def l1_normalization_process(
 
     processing_completed_at = utc_now()
 
-    return L1NormalizationProcessResponseModel(
+    return MaxNormalizationProcessResponseModel(
         success=True,
         startedAt=processing_started_at,
         completedAt=processing_completed_at,
