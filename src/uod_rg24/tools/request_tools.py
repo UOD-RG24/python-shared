@@ -54,3 +54,17 @@ def get_trace_id(
             return components[1]
 
     return uuid.uuid4().hex
+
+
+def to_string_keyed_dict(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        return {}
+
+    unknown_dict = cast(dict[object, object], value)
+    typed_dict: dict[str, object] = {}
+
+    for key, item in unknown_dict.items():
+        if isinstance(key, str):
+            typed_dict[key] = item
+
+    return typed_dict

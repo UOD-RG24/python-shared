@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uod-rg24-python-shared"
-version = "1.0.28"
+version = "1.0.29"
 description = "A reusable Python class library in UOD RG24"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,6 +18,9 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["uod_rg24*"]
+
+[tool.setuptools.package-data]
+uod_rg24 = ["py.typed"]
 
 [tool.pyright]
 typeCheckingMode = "strict"
