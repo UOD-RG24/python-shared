@@ -1,0 +1,351 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "LearningScope": {
+      "enum": [
+        "none",
+        "trainFold",
+        "cohortUnsupervised"
+      ],
+      "title": "LearningScope",
+      "type": "string"
+    },
+    "ManifestCreator": {
+      "additionalProperties": false,
+      "properties": {
+        "codeVersion": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Codeversion",
+          "type": "string"
+        },
+        "containerImageDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Containerimagedigest",
+          "type": "string"
+        },
+        "recipeId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Recipeid",
+          "type": "string"
+        },
+        "recipeVersion": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Recipeversion",
+          "type": "string"
+        },
+        "service": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service",
+        "codeVersion",
+        "containerImageDigest",
+        "recipeId",
+        "recipeVersion"
+      ],
+      "title": "ManifestCreator",
+      "type": "object"
+    },
+    "ManifestData": {
+      "additionalProperties": false,
+      "properties": {
+        "byteLength": {
+          "minimum": 0,
+          "title": "Bytelength",
+          "type": "integer"
+        },
+        "featureCount": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Featurecount"
+        },
+        "featureOrderSha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Featureordersha256"
+        },
+        "mediaType": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Mediatype",
+          "type": "string"
+        },
+        "rowCount": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rowcount"
+        },
+        "sampleOrderSha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sampleordersha256"
+        },
+        "schemaId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Schemaid",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mediaType",
+        "sha256",
+        "byteLength",
+        "schemaId"
+      ],
+      "title": "ManifestData",
+      "type": "object"
+    },
+    "ManifestInput": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Artifactid",
+          "type": "string"
+        },
+        "role": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Role",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifactId",
+        "sha256",
+        "role"
+      ],
+      "title": "ManifestInput",
+      "type": "object"
+    },
+    "ManifestLearning": {
+      "additionalProperties": false,
+      "properties": {
+        "fitPopulationArtifactId": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fitpopulationartifactid"
+        },
+        "fittedArtifactId": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fittedartifactid"
+        },
+        "learningScope": {
+          "$ref": "#/$defs/LearningScope"
+        },
+        "learnsParameters": {
+          "title": "Learnsparameters",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "learnsParameters",
+        "learningScope"
+      ],
+      "title": "ManifestLearning",
+      "type": "object"
+    },
+    "Modality": {
+      "enum": [
+        "mrna",
+        "protein",
+        "clinical",
+        "mixed"
+      ],
+      "title": "Modality",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "artifactId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Artifactid",
+      "type": "string"
+    },
+    "createdAt": {
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?(?:Z|\\+00:00)$",
+      "title": "Createdat",
+      "type": "string"
+    },
+    "createdBy": {
+      "$ref": "#/$defs/ManifestCreator"
+    },
+    "data": {
+      "$ref": "#/$defs/ManifestData"
+    },
+    "datasetId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Datasetid",
+      "type": "string"
+    },
+    "experimentId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Experimentid",
+      "type": "string"
+    },
+    "extensions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Extensions",
+      "type": "object"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/ManifestInput"
+      },
+      "minItems": 1,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "kind": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Kind",
+      "type": "string"
+    },
+    "learning": {
+      "$ref": "#/$defs/ManifestLearning"
+    },
+    "modality": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Modality"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "parameters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "randomSeed": {
+      "title": "Randomseed",
+      "type": "integer"
+    },
+    "runId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Runid",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "artifact-manifest/1.0",
+      "title": "Schemaversion",
+      "type": "string"
+    },
+    "stepRunId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Steprunid",
+      "type": "string"
+    },
+    "warnings": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "artifactId",
+    "kind",
+    "datasetId",
+    "experimentId",
+    "runId",
+    "stepRunId",
+    "createdAt",
+    "createdBy",
+    "inputs",
+    "data",
+    "learning",
+    "randomSeed"
+  ],
+  "title": "ArtifactManifestV1",
+  "type": "object"
+}

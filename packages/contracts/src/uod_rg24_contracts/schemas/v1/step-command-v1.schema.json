@@ -1,0 +1,239 @@
+{
+  "$defs": {
+    "ExecutionContext": {
+      "additionalProperties": false,
+      "properties": {
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "randomSeed": {
+          "title": "Randomseed",
+          "type": "integer"
+        },
+        "recipeId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Recipeid",
+          "type": "string"
+        },
+        "recipeVersion": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Recipeversion",
+          "type": "string"
+        },
+        "requestedAt": {
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?(?:Z|\\+00:00)$",
+          "title": "Requestedat",
+          "type": "string"
+        },
+        "traceparent": {
+          "pattern": "^00-(?!0{32}-)[0-9a-f]{32}-(?!0{16}-)[0-9a-f]{16}-[0-9a-f]{2}$",
+          "title": "Traceparent",
+          "type": "string"
+        }
+      },
+      "required": [
+        "recipeId",
+        "recipeVersion",
+        "randomSeed",
+        "requestedAt",
+        "traceparent"
+      ],
+      "title": "ExecutionContext",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Layer": {
+      "enum": [
+        "standardization",
+        "normalization",
+        "sampleSelection",
+        "featureSelection",
+        "classLabels",
+        "matrixExtraction"
+      ],
+      "title": "Layer",
+      "type": "string"
+    },
+    "StepInput": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Artifactid",
+          "type": "string"
+        },
+        "expectedSchemaId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Expectedschemaid",
+          "type": "string"
+        },
+        "expectedSha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expectedsha256",
+          "type": "string"
+        },
+        "role": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "artifactId",
+        "expectedSha256",
+        "expectedSchemaId"
+      ],
+      "title": "StepInput",
+      "type": "object"
+    },
+    "StepOutputReservation": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Artifactid",
+          "type": "string"
+        },
+        "kind": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "artifactId",
+        "kind"
+      ],
+      "title": "StepOutputReservation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attempt": {
+      "minimum": 1,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "datasetId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Datasetid",
+      "type": "string"
+    },
+    "executionContext": {
+      "$ref": "#/$defs/ExecutionContext"
+    },
+    "experimentId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Experimentid",
+      "type": "string"
+    },
+    "extensions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Extensions",
+      "type": "object"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/StepInput"
+      },
+      "minItems": 1,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "layer": {
+      "$ref": "#/$defs/Layer"
+    },
+    "messageId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Messageid",
+      "type": "string"
+    },
+    "operation": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Operation",
+      "type": "string"
+    },
+    "outputs": {
+      "items": {
+        "$ref": "#/$defs/StepOutputReservation"
+      },
+      "minItems": 1,
+      "title": "Outputs",
+      "type": "array"
+    },
+    "ownerId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Ownerid",
+      "type": "string"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "runId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Runid",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "1.0",
+      "title": "Schemaversion",
+      "type": "string"
+    },
+    "stepRunId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Steprunid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "messageId",
+    "runId",
+    "stepRunId",
+    "attempt",
+    "experimentId",
+    "datasetId",
+    "ownerId",
+    "layer",
+    "operation",
+    "inputs",
+    "outputs",
+    "executionContext"
+  ],
+  "title": "StepCommandV1",
+  "type": "object"
+}
