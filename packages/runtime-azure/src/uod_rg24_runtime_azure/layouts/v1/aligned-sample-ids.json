@@ -1,0 +1,14 @@
+{
+  "outputName": "alignedSampleIds",
+  "kind": "alignedSampleIds",
+  "schemaId": "aligned-sample-ids/1.0",
+  "mediaType": "application/vnd.apache.parquet",
+  "fields": [
+    {"name": "position", "type": "int64", "nullable": false},
+    {"name": "entityId", "type": "utf8", "nullable": false},
+    {"name": "patientId", "type": "utf8", "nullable": false},
+    {"name": "role", "type": "utf8", "nullable": false},
+    {"name": "sourceSampleId", "type": "utf8", "nullable": true}
+  ],
+  "sortKeys": ["position", "role"]
+}

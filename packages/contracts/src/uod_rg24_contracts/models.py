@@ -92,6 +92,7 @@ class StepOutputReservation(WireModel):
     name: NonEmptyStr
     artifact_id: NonEmptyStr
     kind: NonEmptyStr
+    schema_id: NonEmptyStr
 
 
 class ExecutionContext(WireModel):
@@ -301,12 +302,14 @@ class QCSummaryV1(WireModel):
 class OperationInputSpec(WireModel):
     role: NonEmptyStr
     kind: NonEmptyStr
+    accepted_schema_ids: Annotated[list[NonEmptyStr], Field(min_length=1)]
     required: StrictBool = True
 
 
 class OperationOutputSpec(WireModel):
     name: NonEmptyStr
     kind: NonEmptyStr
+    schema_id: NonEmptyStr
 
 
 class OperationDefinition(WireModel):

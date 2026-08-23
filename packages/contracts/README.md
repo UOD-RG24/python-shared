@@ -15,4 +15,3 @@ Run the contract tests with:
 ```bash
 uv run --extra test pytest
 ```
-

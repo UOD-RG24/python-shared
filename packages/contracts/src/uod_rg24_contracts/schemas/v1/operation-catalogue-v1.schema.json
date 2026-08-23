@@ -90,6 +90,16 @@
     "OperationInputSpec": {
       "additionalProperties": false,
       "properties": {
+        "acceptedSchemaIds": {
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Acceptedschemaids",
+          "type": "array"
+        },
         "kind": {
           "minLength": 1,
           "pattern": ".*\\S.*",
@@ -110,7 +120,8 @@
       },
       "required": [
         "role",
-        "kind"
+        "kind",
+        "acceptedSchemaIds"
       ],
       "title": "OperationInputSpec",
       "type": "object"
@@ -129,11 +140,18 @@
           "pattern": ".*\\S.*",
           "title": "Name",
           "type": "string"
+        },
+        "schemaId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Schemaid",
+          "type": "string"
         }
       },
       "required": [
         "name",
-        "kind"
+        "kind",
+        "schemaId"
       ],
       "title": "OperationOutputSpec",
       "type": "object"

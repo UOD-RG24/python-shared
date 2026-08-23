@@ -92,6 +92,10 @@ def test_intersection_selects_primary_lowest_vial_and_records_every_replicate() 
     result = harmonize_samples(synthetic_request())
 
     assert result.retained_cohort == ["TCGA-AA-0001"]
+    assert (
+        result.sample_order_sha256
+        == "19c7fd1bd12dba0b7e307aa5519ba5430ff323db9fef155228ecf759f2f0743b"
+    )
     retained_availability = {
         row.patient_id: row.role_availability for row in result.availability
     }
@@ -283,14 +287,17 @@ def test_request_rejects_unknown_fields_and_overlapping_role_declarations() -> N
         synthetic_request(cohortRoles=["mrna", "proteinAnnotation"])
 
 
-def two_role_request(candidates: list[SampleCandidate], **overrides: object):
-    return HarmonizationRequest(
-        candidates=candidates,
-        clinical_patient_ids=[],
-        clinical_sample_to_patient={},
-        cohort_roles=["mrna", "protein"],
-        **overrides,
-    )
+def two_role_request(
+    candidates: list[SampleCandidate], **overrides: object
+) -> HarmonizationRequest:
+    values: dict[str, object] = {
+        "candidates": candidates,
+        "clinicalPatientIds": [],
+        "clinicalSampleToPatient": {},
+        "cohortRoles": ["mrna", "protein"],
+    }
+    values.update(overrides)
+    return HarmonizationRequest.model_validate(values)
 
 
 def test_candidates_outside_the_cohort_roles_are_reported_not_discarded() -> None:

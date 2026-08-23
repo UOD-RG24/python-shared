@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uod-rg24-runtime-azure"
+version = "0.1.0"
+description = "Azure runtime ports, deterministic artifact serializers, and infrastructure adapters for UOD RG24"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "azure-core>=1.41.0,<2",
+    "azure-identity>=1.25.3,<2",
+    "azure-servicebus>=7.14.3,<8",
+    "azure-storage-blob>=12.30.0,<13",
+    "pyarrow==25.0.0",
+    "uod-rg24-contracts==0.1.0",
+    "uod-rg24-preprocessing==0.1.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9,<10",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["uod_rg24_runtime_azure*"]
+
+[tool.setuptools.package-data]
+uod_rg24_runtime_azure = ["py.typed", "layouts/v1/*.json"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.uv.sources]
+uod-rg24-contracts = { workspace = true }
+uod-rg24-preprocessing = { workspace = true }

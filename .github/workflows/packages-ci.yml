@@ -1,0 +1,85 @@
+name: V1 package quality gates
+
+on:
+  pull_request:
+    paths:
+      - "packages/**"
+      - ".github/workflows/packages-ci.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "packages/**"
+      - ".github/workflows/packages-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the pinned project tool
+        run: python -m pip install uv==0.11.7
+
+      - name: Verify and install the workspace lock
+        run: |
+          uv lock --check
+          uv sync --locked --all-packages --all-extras --group dev
+
+      - name: Check generated contract schemas
+        run: |
+          schema_dir="$(mktemp -d)"
+          uv run --locked --package uod-rg24-contracts \
+            uod-rg24-export-schemas --output-directory "$schema_dir"
+          diff -ru contracts/src/uod_rg24_contracts/schemas/v1 "$schema_dir"
+
+      - name: Lint and format check
+        run: |
+          uv run --locked ruff check contracts preprocessing runtime-azure tools
+          uv run --locked ruff format --check contracts preprocessing runtime-azure tools
+
+      - name: Type check
+        run: uv run --locked pyright
+
+      - name: Test
+        run: >-
+          uv run --locked pytest
+          contracts/tests preprocessing/tests runtime-azure/tests
+
+      - name: Check whitespace
+        working-directory: .
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --check "${{ github.event.pull_request.base.sha }}" HEAD
+          elif [ "${{ github.event_name }}" = "push" ] && \
+               [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            git diff --check "${{ github.event.before }}" HEAD
+          else
+            git show --check --format= HEAD
+          fi
+
+      - name: Build all V1 distributions
+        run: uv build --all-packages --out-dir dist
+
+      - name: Inspect distribution contents and metadata
+        run: uv run --locked python tools/verify_distributions.py dist
+
+      - name: Fresh-wheel installation smoke test
+        run: |
+          smoke_dir="$(mktemp -d)"
+          uv venv --python 3.12 "$smoke_dir/.venv"
+          uv pip install --python "$smoke_dir/.venv/bin/python" dist/*.whl
+          "$smoke_dir/.venv/bin/python" tools/smoke_installed_wheels.py

@@ -11,8 +11,11 @@ from uod_rg24_contracts import (
     ArtifactManifestV1,
     ArtifactRef,
     ManifestLearning,
+    OperationCatalogueV1,
     ProblemDetails,
+    QCSummaryV1,
     StepCommandV1,
+    StepFailedEventV1,
     StepSucceededEventV1,
 )
 from uod_rg24_contracts.schema_export import SCHEMA_MODELS, export_schemas
@@ -45,7 +48,12 @@ def command_payload() -> dict[str, object]:
             }
         ],
         "outputs": [
-            {"name": "matrix", "artifactId": "art_output", "kind": "omicsMatrix"}
+            {
+                "name": "matrix",
+                "artifactId": "art_output",
+                "kind": "omicsMatrix",
+                "schemaId": "omics-wide-matrix/1.0",
+            }
         ],
         "parameters": {"mode": "fitTransform", "withMean": True},
         "executionContext": {
@@ -65,6 +73,7 @@ def test_command_example_round_trips_using_wire_aliases() -> None:
 
     assert dumped["schemaVersion"] == "1.0"
     assert dumped["executionContext"]["randomSeed"] == 1729
+    assert dumped["outputs"][0]["schemaId"] == "omics-wide-matrix/1.0"
     assert "schema_version" not in dumped
 
 
@@ -83,6 +92,11 @@ def test_commands_reject_unknown_fields_and_duplicate_roles() -> None:
     aliased_output["outputs"][0]["artifactId"] = "art_input"  # type: ignore[index]
     with pytest.raises(ValidationError, match="must not alias input artifacts"):
         StepCommandV1.model_validate(aliased_output)
+
+    missing_output_schema = command_payload()
+    del missing_output_schema["outputs"][0]["schemaId"]  # type: ignore[index]
+    with pytest.raises(ValidationError, match="schemaId"):
+        StepCommandV1.model_validate(missing_output_schema)
 
 
 def test_wire_models_reject_python_field_names() -> None:
@@ -188,6 +202,172 @@ def test_succeeded_event_matches_documented_identity_envelope() -> None:
         }
     )
     assert event.trace_id == TRACE_ID
+
+
+def problem_payload() -> dict[str, object]:
+    return {
+        "type": "https://genome.example/problems/schema-validation-failed",
+        "title": "Schema validation failed",
+        "status": 422,
+        "code": "SCHEMA_VALIDATION_FAILED",
+        "detail": "The input matrix did not match its declared schema.",
+        "traceId": TRACE_ID,
+        "errors": [
+            {
+                "path": "inputs[0]",
+                "reason": "unexpectedSchemaId",
+                "count": 1,
+            }
+        ],
+    }
+
+
+def failed_event_payload() -> dict[str, object]:
+    return {
+        "schemaVersion": "1.0",
+        "eventId": "evt_failed_01K",
+        "eventType": "preprocessing.step.failed",
+        "occurredAt": "2026-08-22T12:04:03Z",
+        "runId": "run_01K",
+        "stepRunId": "step_01K",
+        "attempt": 1,
+        "messageId": "msg_01K",
+        "traceId": TRACE_ID,
+        "layer": "sampleSelection",
+        "operation": "harmonizeSamples",
+        "codeVersion": "pp-fa3-sample-selection@2.0.0",
+        "containerImageDigest": IMAGE_DIGEST,
+        "problem": problem_payload(),
+        "retryable": False,
+        "metrics": {
+            "durationMs": 120,
+            "inputRows": 487,
+            "bytesRead": 123,
+            "bytesWritten": 0,
+        },
+    }
+
+
+def test_failed_event_round_trips_problem_details_without_coercion() -> None:
+    event = StepFailedEventV1.model_validate(failed_event_payload())
+
+    dumped = event.model_dump(mode="json")
+
+    assert dumped["eventType"] == "preprocessing.step.failed"
+    assert dumped["problem"]["traceId"] == TRACE_ID
+    assert dumped["problem"]["errors"][0] == {
+        "path": "inputs[0]",
+        "reason": "unexpectedSchemaId",
+        "count": 1,
+        "extensions": {},
+    }
+    assert dumped["retryable"] is False
+
+    invalid = failed_event_payload()
+    invalid["retryable"] = "false"
+    with pytest.raises(ValidationError):
+        StepFailedEventV1.model_validate(invalid)
+
+
+def test_qc_summary_enforces_strict_nonnegative_finite_values() -> None:
+    payload: dict[str, object] = {
+        "schemaVersion": "artifact-qc/1.0",
+        "artifactId": "art_sample_map",
+        "generatedAt": "2026-08-22T12:04:03Z",
+        "counts": {"retainedPatients": 361, "droppedPatients": 4},
+        "metrics": {"retainedFraction": 0.989, "candidateCount": 365},
+        "warnings": ["patientLevelFallback:1"],
+    }
+    summary = QCSummaryV1.model_validate(payload)
+    assert summary.counts["retainedPatients"] == 361
+    assert summary.metrics["retainedFraction"] == 0.989
+
+    for invalid_counts in (
+        {"retainedPatients": -1},
+        {"retainedPatients": "361"},
+    ):
+        with pytest.raises(ValidationError):
+            QCSummaryV1.model_validate({**payload, "counts": invalid_counts})
+
+    with pytest.raises(ValidationError):
+        QCSummaryV1.model_validate(
+            {**payload, "metrics": {"retainedFraction": float("inf")}}
+        )
+
+
+def operation_catalogue_payload() -> dict[str, object]:
+    return {
+        "schemaVersion": "operation-catalogue/1.0",
+        "operations": [
+            {
+                "layer": "sampleSelection",
+                "operation": "testOperation",
+                "inputs": [
+                    {
+                        "role": "mrna",
+                        "kind": "omicsMatrix",
+                        "acceptedSchemaIds": ["omics-wide-matrix/1.0"],
+                        "required": True,
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "sampleMap",
+                        "kind": "sampleMap",
+                        "schemaId": "sample-map/1.0",
+                    }
+                ],
+                "parameterSchema": {
+                    "type": "object",
+                    "additionalProperties": False,
+                },
+                "learnsParameters": False,
+                "allowedLearningScopes": ["none"],
+                "workloadClass": "standard",
+            }
+        ],
+    }
+
+
+def test_operation_catalogue_declares_input_and_output_schema_ids() -> None:
+    catalogue = OperationCatalogueV1.model_validate(operation_catalogue_payload())
+    operation = catalogue.operations[0]
+
+    assert operation.inputs[0].accepted_schema_ids == ["omics-wide-matrix/1.0"]
+    assert operation.outputs[0].schema_id == "sample-map/1.0"
+
+    duplicate = operation_catalogue_payload()
+    duplicate["operations"] = [
+        duplicate["operations"][0],  # type: ignore[index]
+        duplicate["operations"][0],  # type: ignore[index]
+    ]
+    with pytest.raises(ValidationError, match="layer/operation pairs must be unique"):
+        OperationCatalogueV1.model_validate(duplicate)
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [
+        ("inputs", "acceptedSchemaIds"),
+        ("outputs", "schemaId"),
+    ],
+)
+def test_operation_catalogue_requires_schema_declarations(
+    section: str, field: str
+) -> None:
+    payload = operation_catalogue_payload()
+    del payload["operations"][0][section][0][field]  # type: ignore[index]
+
+    with pytest.raises(ValidationError, match=field):
+        OperationCatalogueV1.model_validate(payload)
+
+
+def test_operation_catalogue_rejects_an_empty_accepted_schema_list() -> None:
+    payload = operation_catalogue_payload()
+    payload["operations"][0]["inputs"][0]["acceptedSchemaIds"] = []  # type: ignore[index]
+
+    with pytest.raises(ValidationError):
+        OperationCatalogueV1.model_validate(payload)
 
 
 def test_manifest_enforces_learning_declarations() -> None:

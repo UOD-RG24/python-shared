@@ -117,12 +117,19 @@
           "pattern": ".*\\S.*",
           "title": "Name",
           "type": "string"
+        },
+        "schemaId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Schemaid",
+          "type": "string"
         }
       },
       "required": [
         "name",
         "artifactId",
-        "kind"
+        "kind",
+        "schemaId"
       ],
       "title": "StepOutputReservation",
       "type": "object"
