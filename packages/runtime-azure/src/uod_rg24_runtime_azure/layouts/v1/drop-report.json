@@ -1,0 +1,14 @@
+{
+  "outputName": "dropReport",
+  "kind": "sampleDropReport",
+  "schemaId": "sample-drop-report/1.0",
+  "mediaType": "application/vnd.apache.parquet",
+  "fields": [
+    {"name": "entityId", "type": "utf8", "nullable": false},
+    {"name": "patientId", "type": "utf8", "nullable": false},
+    {"name": "role", "type": "utf8", "nullable": false},
+    {"name": "reason", "type": "utf8", "nullable": false},
+    {"name": "sourceSampleId", "type": "utf8", "nullable": true}
+  ],
+  "sortKeys": ["patientId", "role", "reason", "sourceSampleId"]
+}

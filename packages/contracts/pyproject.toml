@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uod-rg24-contracts"
+version = "0.1.0"
+description = "Versioned wire contracts for the UOD RG24 genome platform"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.13,<3",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9,<10",
+]
+
+[project.scripts]
+uod-rg24-export-schemas = "uod_rg24_contracts.schema_export:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["uod_rg24_contracts*"]
+
+[tool.setuptools.package-data]
+uod_rg24_contracts = ["py.typed", "schemas/v1/*.json"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

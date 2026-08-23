@@ -1,0 +1,341 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "Layer": {
+      "enum": [
+        "standardization",
+        "normalization",
+        "sampleSelection",
+        "featureSelection",
+        "classLabels",
+        "matrixExtraction"
+      ],
+      "title": "Layer",
+      "type": "string"
+    },
+    "ProblemDetails": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Code",
+          "type": "string"
+        },
+        "detail": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Detail",
+          "type": "string"
+        },
+        "errors": {
+          "items": {
+            "$ref": "#/$defs/ProblemError"
+          },
+          "title": "Errors",
+          "type": "array"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "instance": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Instance"
+        },
+        "status": {
+          "maximum": 599,
+          "minimum": 400,
+          "title": "Status",
+          "type": "integer"
+        },
+        "title": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Title",
+          "type": "string"
+        },
+        "traceId": {
+          "anyOf": [
+            {
+              "pattern": "^(?!0{32}$)[0-9a-f]{32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traceid"
+        },
+        "type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "title",
+        "status",
+        "code",
+        "detail"
+      ],
+      "title": "ProblemDetails",
+      "type": "object"
+    },
+    "ProblemError": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Count"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "ProblemError",
+      "type": "object"
+    },
+    "StepMetrics": {
+      "additionalProperties": false,
+      "properties": {
+        "bytesRead": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Bytesread",
+          "type": "integer"
+        },
+        "bytesWritten": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Byteswritten",
+          "type": "integer"
+        },
+        "durationMs": {
+          "minimum": 0,
+          "title": "Durationms",
+          "type": "integer"
+        },
+        "inputFeatures": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputfeatures"
+        },
+        "inputRows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputrows"
+        },
+        "outputFeatures": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outputfeatures"
+        },
+        "outputRows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outputrows"
+        }
+      },
+      "required": [
+        "durationMs"
+      ],
+      "title": "StepMetrics",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attempt": {
+      "minimum": 1,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "codeVersion": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Codeversion",
+      "type": "string"
+    },
+    "containerImageDigest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Containerimagedigest",
+      "type": "string"
+    },
+    "eventId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Eventid",
+      "type": "string"
+    },
+    "eventType": {
+      "const": "preprocessing.step.failed",
+      "title": "Eventtype",
+      "type": "string"
+    },
+    "extensions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Extensions",
+      "type": "object"
+    },
+    "layer": {
+      "$ref": "#/$defs/Layer"
+    },
+    "messageId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Messageid",
+      "type": "string"
+    },
+    "metrics": {
+      "$ref": "#/$defs/StepMetrics"
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?(?:Z|\\+00:00)$",
+      "title": "Occurredat",
+      "type": "string"
+    },
+    "operation": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Operation",
+      "type": "string"
+    },
+    "problem": {
+      "$ref": "#/$defs/ProblemDetails"
+    },
+    "retryable": {
+      "title": "Retryable",
+      "type": "boolean"
+    },
+    "runId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Runid",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "1.0",
+      "title": "Schemaversion",
+      "type": "string"
+    },
+    "stepRunId": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Steprunid",
+      "type": "string"
+    },
+    "traceId": {
+      "pattern": "^(?!0{32}$)[0-9a-f]{32}$",
+      "title": "Traceid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "occurredAt",
+    "runId",
+    "stepRunId",
+    "attempt",
+    "messageId",
+    "traceId",
+    "layer",
+    "operation",
+    "codeVersion",
+    "containerImageDigest",
+    "eventType",
+    "problem",
+    "retryable",
+    "metrics"
+  ],
+  "title": "StepFailedEventV1",
+  "type": "object"
+}
