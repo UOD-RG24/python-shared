@@ -1,0 +1,20 @@
+{
+  "outputName": "sampleMap",
+  "kind": "sampleMap",
+  "schemaId": "sample-map/1.0",
+  "mediaType": "application/vnd.apache.parquet",
+  "fields": [
+    {"name": "entityId", "type": "utf8", "nullable": false},
+    {"name": "patientId", "type": "utf8", "nullable": false},
+    {"name": "modality", "type": "utf8", "nullable": false},
+    {"name": "role", "type": "utf8", "nullable": false},
+    {"name": "sourceSampleId", "type": "utf8", "nullable": true},
+    {"name": "selected", "type": "bool", "nullable": false},
+    {"name": "selectionReason", "type": "utf8", "nullable": true},
+    {"name": "rejectedReason", "type": "utf8", "nullable": true},
+    {"name": "replicateGroup", "type": "utf8", "nullable": false},
+    {"name": "sourceArtifactId", "type": "utf8", "nullable": false},
+    {"name": "mappingStatus", "type": "utf8", "nullable": false}
+  ],
+  "sortKeys": ["patientId", "role", "sourceSampleId", "sourceArtifactId"]
+}

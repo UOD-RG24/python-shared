@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uod-rg24-preprocessing"
+version = "0.1.0"
+description = "Pure scientific preprocessing strategies for the UOD RG24 genome platform"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.13,<3",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9,<10",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["uod_rg24_preprocessing*"]
+
+[tool.setuptools.package-data]
+uod_rg24_preprocessing = ["py.typed"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

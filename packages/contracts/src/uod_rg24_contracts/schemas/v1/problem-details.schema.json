@@ -1,0 +1,138 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "ProblemError": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Count"
+        },
+        "extensions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "reason": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "ProblemError",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Code",
+      "type": "string"
+    },
+    "detail": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Detail",
+      "type": "string"
+    },
+    "errors": {
+      "items": {
+        "$ref": "#/$defs/ProblemError"
+      },
+      "title": "Errors",
+      "type": "array"
+    },
+    "extensions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Extensions",
+      "type": "object"
+    },
+    "instance": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Instance"
+    },
+    "status": {
+      "maximum": 599,
+      "minimum": 400,
+      "title": "Status",
+      "type": "integer"
+    },
+    "title": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Title",
+      "type": "string"
+    },
+    "traceId": {
+      "anyOf": [
+        {
+          "pattern": "^(?!0{32}$)[0-9a-f]{32}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Traceid"
+    },
+    "type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "status",
+    "code",
+    "detail"
+  ],
+  "title": "ProblemDetails",
+  "type": "object"
+}

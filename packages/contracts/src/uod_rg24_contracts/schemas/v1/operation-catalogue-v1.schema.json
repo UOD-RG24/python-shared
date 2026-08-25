@@ -1,0 +1,182 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "Layer": {
+      "enum": [
+        "standardization",
+        "normalization",
+        "sampleSelection",
+        "featureSelection",
+        "classLabels",
+        "matrixExtraction"
+      ],
+      "title": "Layer",
+      "type": "string"
+    },
+    "LearningScope": {
+      "enum": [
+        "none",
+        "trainFold",
+        "cohortUnsupervised"
+      ],
+      "title": "LearningScope",
+      "type": "string"
+    },
+    "OperationDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "allowedLearningScopes": {
+          "items": {
+            "$ref": "#/$defs/LearningScope"
+          },
+          "title": "Allowedlearningscopes",
+          "type": "array"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/OperationInputSpec"
+          },
+          "minItems": 1,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "layer": {
+          "$ref": "#/$defs/Layer"
+        },
+        "learnsParameters": {
+          "title": "Learnsparameters",
+          "type": "boolean"
+        },
+        "operation": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Operation",
+          "type": "string"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/OperationOutputSpec"
+          },
+          "minItems": 1,
+          "title": "Outputs",
+          "type": "array"
+        },
+        "parameterSchema": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Parameterschema",
+          "type": "object"
+        },
+        "workloadClass": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Workloadclass",
+          "type": "string"
+        }
+      },
+      "required": [
+        "layer",
+        "operation",
+        "inputs",
+        "outputs",
+        "parameterSchema",
+        "learnsParameters",
+        "workloadClass"
+      ],
+      "title": "OperationDefinition",
+      "type": "object"
+    },
+    "OperationInputSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptedSchemaIds": {
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Acceptedschemaids",
+          "type": "array"
+        },
+        "kind": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Kind",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "role": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "kind",
+        "acceptedSchemaIds"
+      ],
+      "title": "OperationInputSpec",
+      "type": "object"
+    },
+    "OperationOutputSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Name",
+          "type": "string"
+        },
+        "schemaId": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Schemaid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "schemaId"
+      ],
+      "title": "OperationOutputSpec",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "operations": {
+      "items": {
+        "$ref": "#/$defs/OperationDefinition"
+      },
+      "minItems": 1,
+      "title": "Operations",
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": "operation-catalogue/1.0",
+      "title": "Schemaversion",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "operations"
+  ],
+  "title": "OperationCatalogueV1",
+  "type": "object"
+}
