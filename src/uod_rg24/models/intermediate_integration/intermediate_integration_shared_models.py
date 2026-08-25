@@ -49,15 +49,12 @@ class ErrorModel(BaseModel):
 class ProcessStepModel(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
+        extra="forbid",
     )
-
     step: str
     started_at: datetime = Field(alias="startedAt")
     completed_at: datetime = Field(alias="completedAt")
-    duration_ms: float = Field(
-        alias="durationMs",
-        ge=0,
-    )
+    duration_ms: float = Field(alias="durationMs", ge=0)
     message: str | None = None
 
 
