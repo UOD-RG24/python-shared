@@ -16,6 +16,7 @@
     "Modality": {
       "enum": [
         "mrna",
+        "cna",
         "protein",
         "clinical",
         "mixed"

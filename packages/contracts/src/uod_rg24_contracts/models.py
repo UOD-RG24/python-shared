@@ -54,6 +54,7 @@ class ArtifactState(StrEnum):
 
 class Modality(StrEnum):
     MRNA = "mrna"
+    CNA = "cna"
     PROTEIN = "protein"
     CLINICAL = "clinical"
     MIXED = "mixed"
