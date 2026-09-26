@@ -14,6 +14,7 @@ class FeatureSelectionStrategy(StrEnum):
     LOW_VARIANCE = "lowVariance"
     TOP_K_BY_VARIANCE = "topKByVariance"
     CORRELATION_FILTER = "correlationFilter"
+    TOP_K_BY_ANOVA = "topKByAnova"
 
 
 class SelectionLearningScope(StrEnum):
@@ -78,8 +79,21 @@ class FittedFeatureMask:
     input_artifact_sha256: str
     fit_row_count: int
     options: tuple[tuple[str, float | int], ...] = ()
+    label_artifact_id: str | None = None
+    label_artifact_sha256: str | None = None
 
     def __post_init__(self) -> None:
+        if self.strategy == FeatureSelectionStrategy.TOP_K_BY_ANOVA and (
+            self.learning_scope != SelectionLearningScope.TRAIN_FOLD
+            or not self.label_artifact_id
+            or not self.label_artifact_sha256
+            or len(self.label_artifact_sha256) != 64
+            or any(c not in "0123456789abcdef" for c in self.label_artifact_sha256)
+        ):
+            raise FeatureSelectionError(
+                "INVALID_LABEL_ARTIFACT",
+                "Supervised masks require training scope and exact label provenance.",
+            )
         if self.schema_version != "feature-mask/1.0":
             raise FeatureSelectionError(
                 "INVALID_FEATURE_MASK", "Unsupported feature-mask schema version."

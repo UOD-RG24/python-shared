@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import math
+import sys
+from collections import Counter
 from collections.abc import Sequence
 
 from .errors import FeatureSelectionError
@@ -32,6 +34,9 @@ def fit_select(
     variance_threshold: float = 0.0,
     top_k: int | None = None,
     maximum_correlation: float = 0.95,
+    labels: Sequence[str] | None = None,
+    label_artifact_id: str | None = None,
+    label_artifact_sha256: str | None = None,
 ) -> FeatureSelectionResult:
     """Fit a deterministic mask and apply it to the fitting rows."""
 
@@ -39,6 +44,15 @@ def fit_select(
     parsed_scope = _scope(learning_scope)
     rows, ids, types = _validate(values, feature_ids, feature_types)
     columns = tuple(tuple(row[index] for row in rows) for index in range(len(ids)))
+    if parsed_strategy == FeatureSelectionStrategy.TOP_K_BY_ANOVA:
+        if parsed_scope != SelectionLearningScope.TRAIN_FOLD:
+            raise FeatureSelectionError(
+                "INVALID_LEARNING_SCOPE", "Supervised selection requires trainFold."
+            )
+        if not label_artifact_id or not label_artifact_sha256:
+            raise FeatureSelectionError(
+                "INVALID_LABEL_ARTIFACT", "Exact label artifact provenance is required."
+            )
     selected, scores, reasons, options = _fit(
         columns,
         ids,
@@ -46,6 +60,7 @@ def fit_select(
         variance_threshold=variance_threshold,
         top_k=top_k,
         maximum_correlation=maximum_correlation,
+        labels=labels,
     )
     selected_positions = {
         position: selected_position
@@ -81,6 +96,8 @@ def fit_select(
         input_artifact_sha256=input_artifact_sha256,
         fit_row_count=len(rows),
         options=options,
+        label_artifact_id=label_artifact_id,
+        label_artifact_sha256=label_artifact_sha256,
     )
     return FeatureSelectionResult(values=_apply(rows, mask), mask=mask)
 
@@ -104,6 +121,7 @@ def apply_mask(
         FeatureSelectionStrategy.LOW_VARIANCE,
         FeatureSelectionStrategy.TOP_K_BY_VARIANCE,
         FeatureSelectionStrategy.CORRELATION_FILTER,
+        FeatureSelectionStrategy.TOP_K_BY_ANOVA,
     }:
         _require_complete(rows)
     return FeatureSelectionResult(values=_apply(rows, mask), mask=mask)
@@ -174,6 +192,7 @@ def _fit(
     variance_threshold: float,
     top_k: int | None,
     maximum_correlation: float,
+    labels: Sequence[str] | None,
 ) -> tuple[
     set[int],
     tuple[float | None, ...],
@@ -224,16 +243,26 @@ def _fit(
             else:
                 reasons[position] = "belowVarianceThreshold"
         options = (("varianceThreshold", float(variance_threshold)),)
-    elif strategy == FeatureSelectionStrategy.TOP_K_BY_VARIANCE:
+    elif strategy in {
+        FeatureSelectionStrategy.TOP_K_BY_VARIANCE,
+        FeatureSelectionStrategy.TOP_K_BY_ANOVA,
+    }:
         _require_complete_columns(columns)
-        if isinstance(top_k, bool) or top_k is None or not 1 <= top_k <= count:
+        if (
+            isinstance(top_k, bool)
+            or not isinstance(top_k, int)
+            or not 1 <= top_k <= count
+        ):
             raise FeatureSelectionError(
                 "INVALID_PARAMETERS", "topK must be between one and the feature count."
             )
-        variances = tuple(
-            _variance(tuple(float(value) for value in column if value is not None))
-            for column in columns
-        )
+        if strategy == FeatureSelectionStrategy.TOP_K_BY_ANOVA:
+            variances = _anova_scores(columns, labels)
+        else:
+            variances = tuple(
+                _variance(tuple(float(value) for value in column if value is not None))
+                for column in columns
+            )
         scores[:] = variances
         ranking = sorted(
             range(count),
@@ -285,6 +314,58 @@ def _fit(
             "NO_FEATURES_SELECTED", "The configured strategy selected no features."
         )
     return selected, tuple(scores), tuple(reasons), options
+
+
+def _anova_scores(
+    columns: tuple[tuple[float | None, ...], ...], labels: Sequence[str] | None
+) -> tuple[float, ...]:
+    """One-way ANOVA F scores; no p-values or ordinal label encoding."""
+    if (
+        labels is None
+        or len(labels) != len(columns[0])
+        or any(not isinstance(label, str) or not label.strip() for label in labels)
+    ):
+        raise FeatureSelectionError(
+            "INVALID_LABEL_ARTIFACT", "Every fitting row requires a mapped class label."
+        )
+    counts = Counter(labels)
+    if len(counts) < 2 or min(counts.values()) < 2:
+        raise FeatureSelectionError(
+            "INSUFFICIENT_CLASS_SAMPLES",
+            "ANOVA requires two classes with two rows each.",
+        )
+    groups = tuple(
+        tuple(i for i, label in enumerate(labels) if label == cls)
+        for cls in sorted(counts)
+    )
+    scores: list[float] = []
+    for column in columns:
+        values = tuple(float(value) for value in column if value is not None)
+        # Rescaling avoids overflow and leaves the dimensionless F statistic unchanged.
+        scale = max(abs(value) for value in values) or 1.0
+        values = tuple(value / scale for value in values)
+        mean = math.fsum(values) / len(values)
+        means = tuple(
+            math.fsum(values[i] for i in group) / len(group) for group in groups
+        )
+        between = math.fsum(
+            len(group) * (center - mean) ** 2
+            for group, center in zip(groups, means, strict=True)
+        )
+        within = math.fsum(
+            (values[i] - center) ** 2
+            for group, center in zip(groups, means, strict=True)
+            for i in group
+        )
+        if within == 0.0:
+            score = sys.float_info.max if between > 0.0 else 0.0
+        else:
+            score = min(
+                (between / (len(groups) - 1)) / (within / (len(values) - len(groups))),
+                sys.float_info.max,
+            )
+        scores.append(score)
+    return tuple(scores)
 
 
 def _require_complete(rows: tuple[tuple[float | None, ...], ...]) -> None:
