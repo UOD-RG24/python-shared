@@ -1,3 +1,14 @@
+from .ingestion import (
+    FeatureNamespace,
+    IngestionError,
+    Modality,
+    RegistrationParameters,
+    RegistrationPlan,
+    SourceUpload,
+    ValueScale,
+    plan_wide_matrix_registration,
+    verify_source_integrity,
+)
 from .sample_selection import (
     CohortPolicy,
     HarmonizationRequest,
@@ -7,13 +18,40 @@ from .sample_selection import (
     harmonize_samples,
     parse_tcga_barcode,
 )
+from .standardization import (
+    FeatureParameters,
+    FittedTransformer,
+    LearningScope,
+    StandardizationError,
+    StandardizationResult,
+    StandardizationStrategy,
+    fit_transform,
+    transform,
+)
 
 __all__ = [
     "CohortPolicy",
+    "FeatureNamespace",
+    "FeatureParameters",
+    "FittedTransformer",
     "HarmonizationRequest",
     "HarmonizationResult",
+    "IngestionError",
+    "LearningScope",
     "MatchLevel",
+    "Modality",
+    "RegistrationParameters",
+    "RegistrationPlan",
     "SampleCandidate",
+    "SourceUpload",
+    "StandardizationError",
+    "StandardizationResult",
+    "StandardizationStrategy",
+    "ValueScale",
+    "fit_transform",
     "harmonize_samples",
     "parse_tcga_barcode",
+    "plan_wide_matrix_registration",
+    "transform",
+    "verify_source_integrity",
 ]

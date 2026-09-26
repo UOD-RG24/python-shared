@@ -26,6 +26,7 @@ from uod_rg24_runtime_azure import (
     AzureBlobArtifactReader,
     AzureBlobArtifactWriter,
     BlobETag,
+    CanonicalMatrixBlobArtifactWriter,
     ResolvedInputArtifact,
     ResolvedOutputReservation,
     Sha256Digest,
@@ -435,3 +436,115 @@ def test_writer_rehashes_every_materialized_member_before_blob_io() -> None:
         with pytest.raises(ArtifactHashMismatchError, match="member hash"):
             writer.upload_bundle(reservation(), bundle)
     assert service.requests == []
+
+
+def materialize_matrix_bundle(workspace: StepWorkspace, *, data: bytes = b"PAR1"):
+    data_sha256 = sha256_bytes(data)
+    manifest_data = canonical_json_bytes(
+        {
+            "schemaVersion": "artifact-manifest/1.0",
+            "artifactId": "art_output",
+            "kind": "omicsMatrix",
+            "data": {
+                "schemaId": "omics-wide-matrix/1.0",
+                "mediaType": "application/vnd.apache.parquet",
+                "sha256": data_sha256,
+                "byteLength": len(data),
+                "sampleOrderSha256": SAMPLE_ORDER_SHA256,
+            },
+        }
+    )
+    qc_data = canonical_json_bytes(
+        {"schemaVersion": "artifact-qc/1.0", "artifactId": "art_output"}
+    )
+    return workspace.materialize_bundle(
+        output_name="matrix",
+        data=payload(
+            output_name="matrix",
+            kind="omicsMatrix",
+            schema_id="omics-wide-matrix/1.0",
+            media_type="application/vnd.apache.parquet",
+            data=data,
+            sample_order_sha256=SAMPLE_ORDER_SHA256,
+        ),
+        manifest=payload(
+            output_name="manifest",
+            kind="artifactManifest",
+            schema_id="artifact-manifest/1.0",
+            media_type="application/json",
+            data=manifest_data,
+        ),
+        qc=payload(
+            output_name="matrix.qc",
+            kind="qcSummary",
+            schema_id="artifact-qc/1.0",
+            media_type="application/json",
+            data=qc_data,
+        ),
+    )
+
+
+def matrix_reservation(**overrides: object) -> ResolvedOutputReservation:
+    values: dict[str, object] = {
+        "output_name": "matrix",
+        "kind": "omicsMatrix",
+        "schema_id": "omics-wide-matrix/1.0",
+        "blob_prefix": "owner/dataset/artifacts/art_output",
+    }
+    values.update(overrides)
+    return reservation(**values)
+
+
+def test_canonical_matrix_writer_uploads_a_matrix_bundle() -> None:
+    service = FakeBlobService()
+    writer = CanonicalMatrixBlobArtifactWriter(service)
+    with StepWorkspace() as workspace:
+        bundle = materialize_matrix_bundle(workspace)
+
+        receipt = writer.upload_bundle(matrix_reservation(), bundle)
+
+    assert receipt.artifact_id == "art_output"
+    assert sorted(blob for _, blob in service.records) == [
+        "owner/dataset/artifacts/art_output/data.parquet",
+        "owner/dataset/artifacts/art_output/manifest.json",
+        "owner/dataset/artifacts/art_output/qc.json",
+    ]
+    assert receipt.data.already_existed is False
+    assert all(kwargs["overwrite"] is False for kwargs in service.upload_kwargs)
+
+
+def test_canonical_matrix_writer_replays_without_rewriting() -> None:
+    service = FakeBlobService()
+    writer = CanonicalMatrixBlobArtifactWriter(service)
+    with StepWorkspace() as workspace:
+        bundle = materialize_matrix_bundle(workspace)
+        writer.upload_bundle(matrix_reservation(), bundle)
+        replay = writer.upload_bundle(matrix_reservation(), bundle)
+
+    assert replay.data.already_existed is True
+    assert replay.manifest.already_existed is True
+    assert replay.qc.already_existed is True
+
+
+def test_canonical_matrix_writer_rejects_an_unknown_output_name() -> None:
+    service = FakeBlobService()
+    writer = CanonicalMatrixBlobArtifactWriter(service)
+    with StepWorkspace() as workspace:
+        bundle = materialize_matrix_bundle(workspace)
+
+        with pytest.raises(ArtifactSchemaMismatchError):
+            writer.upload_bundle(matrix_reservation(output_name="sampleMap"), bundle)
+
+    assert service.records == {}
+
+
+def test_base_writer_still_rejects_the_matrix_layout() -> None:
+    service = FakeBlobService()
+    writer = AzureBlobArtifactWriter(service)
+    with StepWorkspace() as workspace:
+        bundle = materialize_matrix_bundle(workspace)
+
+        with pytest.raises(ArtifactSchemaMismatchError):
+            writer.upload_bundle(matrix_reservation(), bundle)
+
+    assert service.records == {}

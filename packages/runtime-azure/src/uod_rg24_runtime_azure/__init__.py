@@ -1,14 +1,5 @@
-from .azure_blob import AzureBlobArtifactReader, AzureBlobArtifactWriter
-from .azure_clients import (
-    create_blob_service_client,
-    create_default_credential,
-    create_service_bus_client,
-)
-from .azure_service_bus import (
-    DEFAULT_MAXIMUM_MESSAGE_BYTES,
-    AzureServiceBusCommandPublisher,
-    AzureServiceBusEventPublisher,
-)
+from importlib import import_module
+
 from .errors import (
     ArtifactAuthorizationError,
     ArtifactHashMismatchError,
@@ -74,14 +65,44 @@ from .serialization import (
     PARQUET_WRITE_OPTIONS,
     QC_KIND,
     QC_SCHEMA_ID,
+    REGISTERED_MATRIX_OUTPUT_NAME,
     ArtifactLayout,
+    CanonicalMatrixError,
+    CanonicalMatrixResult,
     LayoutField,
+    build_canonical_matrix,
     get_layout,
+    order_hash,
+    serialize_canonical_matrix,
     serialize_harmonization_reports,
     serialize_manifest,
     serialize_qc_sidecars,
+    serialize_registration_qc,
 )
 from .workspace import StepWorkspace
+
+_LAZY_AZURE_EXPORTS = {
+    "AzureBlobArtifactReader": ".azure_blob",
+    "AzureBlobArtifactWriter": ".azure_blob",
+    "CanonicalMatrixBlobArtifactWriter": ".azure_blob",
+    "create_blob_service_client": ".azure_clients",
+    "create_default_credential": ".azure_clients",
+    "create_service_bus_client": ".azure_clients",
+    "DEFAULT_MAXIMUM_MESSAGE_BYTES": ".azure_service_bus",
+    "AzureServiceBusCommandPublisher": ".azure_service_bus",
+    "AzureServiceBusEventPublisher": ".azure_service_bus",
+}
+
+
+def __getattr__(name: str) -> object:
+    """Load Azure SDK adapters only when a caller asks for one."""
+    module_name = _LAZY_AZURE_EXPORTS.get(name)
+    if module_name is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    value = getattr(import_module(module_name, __name__), name)
+    globals()[name] = value
+    return value
+
 
 __all__ = [
     "ARTIFACT_BUNDLE_MEMBERS",
@@ -96,6 +117,7 @@ __all__ = [
     "PARQUET_WRITE_OPTIONS",
     "QC_KIND",
     "QC_SCHEMA_ID",
+    "REGISTERED_MATRIX_OUTPUT_NAME",
     "ArtifactAuthorizationError",
     "ArtifactBundle",
     "ArtifactBundleWriteReceipt",
@@ -125,6 +147,9 @@ __all__ = [
     "AzureServiceBusCommandPublisher",
     "AzureServiceBusEventPublisher",
     "BlobETag",
+    "CanonicalMatrixBlobArtifactWriter",
+    "CanonicalMatrixError",
+    "CanonicalMatrixResult",
     "Clock",
     "CommandPublisher",
     "EventPublisher",
@@ -146,16 +171,20 @@ __all__ = [
     "StepWorkspace",
     "StructuredLogger",
     "TraceContext",
+    "build_canonical_matrix",
     "canonical_json_bytes",
     "create_blob_service_client",
     "create_default_credential",
     "create_service_bus_client",
     "decode_json_object",
     "get_layout",
+    "order_hash",
     "runtime_error_to_problem",
+    "serialize_canonical_matrix",
     "serialize_harmonization_reports",
     "serialize_manifest",
     "serialize_qc_sidecars",
+    "serialize_registration_qc",
     "sha256_bytes",
     "sha256_stream",
     "step_command_fingerprint",

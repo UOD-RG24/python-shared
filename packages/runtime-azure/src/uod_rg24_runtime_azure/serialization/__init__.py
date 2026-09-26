@@ -1,3 +1,12 @@
+from .canonical_matrix import (
+    REGISTERED_MATRIX_OUTPUT_NAME,
+    CanonicalMatrixError,
+    CanonicalMatrixResult,
+    build_canonical_matrix,
+    order_hash,
+    serialize_canonical_matrix,
+    serialize_registration_qc,
+)
 from .layouts import (
     OUTPUT_LAYOUTS,
     OUTPUT_NAMES,
@@ -26,10 +35,17 @@ __all__ = [
     "PARQUET_WRITE_OPTIONS",
     "QC_KIND",
     "QC_SCHEMA_ID",
+    "REGISTERED_MATRIX_OUTPUT_NAME",
     "ArtifactLayout",
+    "CanonicalMatrixError",
+    "CanonicalMatrixResult",
     "LayoutField",
+    "build_canonical_matrix",
     "get_layout",
+    "order_hash",
+    "serialize_canonical_matrix",
     "serialize_harmonization_reports",
     "serialize_manifest",
     "serialize_qc_sidecars",
+    "serialize_registration_qc",
 ]

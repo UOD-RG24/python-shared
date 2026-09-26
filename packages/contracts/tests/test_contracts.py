@@ -381,6 +381,24 @@ def test_manifest_enforces_learning_declarations() -> None:
             {"learnsParameters": True, "learningScope": "trainFold"}
         )
 
+    transform_learning = ManifestLearning.model_validate(
+        {
+            "learnsParameters": False,
+            "learningScope": "none",
+            "fittedArtifactId": "art_fitted_transformer",
+        }
+    )
+    assert transform_learning.fitted_artifact_id == "art_fitted_transformer"
+
+    with pytest.raises(ValidationError, match="cannot declare a fitting population"):
+        ManifestLearning.model_validate(
+            {
+                "learnsParameters": False,
+                "learningScope": "none",
+                "fitPopulationArtifactId": "art_train_ids",
+            }
+        )
+
     manifest = ArtifactManifestV1.model_validate(
         {
             "schemaVersion": "artifact-manifest/1.0",

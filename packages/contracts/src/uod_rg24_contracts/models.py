@@ -240,9 +240,9 @@ class ManifestLearning(WireModel):
         if not self.learns_parameters:
             if self.learning_scope != LearningScope.NONE:
                 raise ValueError("non-learning operations must use learningScope=none")
-            if self.fit_population_artifact_id or self.fitted_artifact_id:
+            if self.fit_population_artifact_id:
                 raise ValueError(
-                    "non-learning operations cannot reference fitted state"
+                    "non-learning operations cannot declare a fitting population"
                 )
         elif self.learning_scope == LearningScope.NONE:
             raise ValueError("learning operations must declare their learning scope")

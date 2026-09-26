@@ -13,6 +13,7 @@ from azure.core.exceptions import (
 )
 from azure.storage.blob import ContentSettings
 from uod_rg24_contracts import ArtifactState
+from uod_rg24_preprocessing.ingestion import MATRIX_KIND, MATRIX_SCHEMA_ID
 
 from .errors import (
     ArtifactAuthorizationError,
@@ -30,6 +31,7 @@ from .errors import (
 from .hashing import sha256_stream
 from .json_codec import decode_json_object
 from .models import (
+    PARQUET_MEDIA_TYPE,
     ArtifactBundle,
     ArtifactBundleWriteReceipt,
     ArtifactFile,
@@ -48,6 +50,7 @@ from .serialization import (
     OUTPUT_LAYOUTS,
     QC_KIND,
     QC_SCHEMA_ID,
+    REGISTERED_MATRIX_OUTPUT_NAME,
 )
 from .workspace import StepWorkspace
 
@@ -285,11 +288,18 @@ class AzureBlobArtifactWriter:
         self._client = client
         self._maximum_concurrency = maximum_concurrency
 
-    def _validate_bundle(
+    def _expected_data_contract(
         self,
         reservation: ResolvedOutputReservation,
-        bundle: ArtifactBundle,
-    ) -> None:
+    ) -> tuple[str, str, str]:
+        """Return the (kind, schemaId, mediaType) this output name must declare.
+
+        The shared writer freezes FA3's five report layouts. A service whose
+        output is a different fixed artifact overrides this one method and keeps
+        the shared create-safe upload, hash checking and replay behavior instead
+        of reimplementing bundle validation.
+        """
+
         try:
             layout = OUTPUT_LAYOUTS[reservation.output_name]
         except KeyError as exc:
@@ -297,11 +307,19 @@ class AzureBlobArtifactWriter:
                 "Output reservation name is not supported.",
                 artifact_id=reservation.artifact_id,
             ) from exc
+        return layout.kind, layout.schema_id, layout.media_type
+
+    def _validate_bundle(
+        self,
+        reservation: ResolvedOutputReservation,
+        bundle: ArtifactBundle,
+    ) -> None:
+        kind, schema_id, media_type = self._expected_data_contract(reservation)
         if (
             bundle.data.output_name != reservation.output_name
-            or reservation.kind != layout.kind
-            or reservation.schema_id != layout.schema_id
-            or reservation.media_type != layout.media_type
+            or reservation.kind != kind
+            or reservation.schema_id != schema_id
+            or reservation.media_type != media_type
             or bundle.data.kind != reservation.kind
             or bundle.data.schema_id != reservation.schema_id
             or bundle.data.media_type != reservation.media_type
@@ -484,3 +502,25 @@ class AzureBlobArtifactWriter:
             manifest=self._upload_file(reservation, bundle.manifest),
             qc=self._upload_file(reservation, bundle.qc),
         )
+
+
+class CanonicalMatrixBlobArtifactWriter(AzureBlobArtifactWriter):
+    """Write one canonical wide-matrix bundle rather than FA3's five reports.
+
+    Dataset registration and every later matrix-producing operation reserve a
+    single ``matrix`` output whose contract is fixed by
+    ``omics-wide-matrix/1.0``. Everything else about the upload, including
+    create-safe semantics, blob metadata, hash verification and idempotent
+    replay, is inherited unchanged.
+    """
+
+    def _expected_data_contract(
+        self,
+        reservation: ResolvedOutputReservation,
+    ) -> tuple[str, str, str]:
+        if reservation.output_name != REGISTERED_MATRIX_OUTPUT_NAME:
+            raise ArtifactSchemaMismatchError(
+                "Output reservation name is not supported.",
+                artifact_id=reservation.artifact_id,
+            )
+        return MATRIX_KIND, MATRIX_SCHEMA_ID, PARQUET_MEDIA_TYPE
